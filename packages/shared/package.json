@@ -1,0 +1,13 @@
+{
+  "name": "@ecotrack/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./design-tokens": "./design-tokens.ts",
+    "./types": "./types.ts",
+    "./constants": "./constants.ts"
+  }
+}
