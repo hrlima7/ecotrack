@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty') && [ -n \"$FILE\" ] && REPO=$(git -C \"$(dirname \"$FILE\")\" rev-parse --show-toplevel 2>/dev/null) && [ -n \"$REPO\" ] && git -C \"$REPO\" add \"$FILE\" && git -C \"$REPO\" commit -m \"auto: update $(basename \"$FILE\")\" 2>/dev/null || true",
+            "statusMessage": "Versionando no git..."
+          }
+        ]
+      }
+    ]
+  }
+}

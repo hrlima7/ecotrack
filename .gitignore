@@ -12,8 +12,8 @@ build
 .env.local
 .env.*.local
 
-# Prisma
-apps/api/prisma/migrations
+# Claude Code local settings (permissões pessoais, não commitar)
+.claude/settings.local.json
 
 # Turbo cache
 .turbo
