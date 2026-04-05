@@ -1,0 +1,330 @@
+// EcoTrack — Schema Prisma
+// ORM: Prisma | DB: PostgreSQL
+// Conformidade: LGPD, CONAMA 275/2001, SINIR, ABNT NBR 10.004
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────
+
+enum TipoEmpresa {
+  GERADOR
+  TRANSPORTADOR
+  DESTINADOR
+}
+
+enum RoleUsuario {
+  ADMIN
+  OPERADOR
+  MOTORISTA
+}
+
+enum TipoResiduo {
+  ORGANICO
+  RECICLAVEL
+  ELETRONICO
+  HOSPITALAR
+  PERIGOSO
+}
+
+enum UnidadeMedida {
+  KG
+  LITRO
+  UNIDADE
+}
+
+enum FrequenciaColeta {
+  DIARIA
+  SEMANAL
+  QUINZENAL
+  MENSAL
+  SOB_DEMANDA
+}
+
+enum StatusColeta {
+  PENDENTE
+  CONFIRMADA
+  EM_ROTA
+  COLETADO
+  FINALIZADO
+  CANCELADO
+}
+
+enum StatusMTR {
+  RASCUNHO
+  EMITIDO
+  ACEITO
+  FINALIZADO
+  CANCELADO
+}
+
+enum PlanoSaaS {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+// ─── Empresa (multi-tenant root) ─────────────────────────────────────────
+
+model Empresa {
+  id            String     @id @default(cuid())
+  cnpj          String     @unique @db.VarChar(18)
+  razaoSocial   String     @db.VarChar(255)
+  nomeFantasia  String?    @db.VarChar(255)
+  tipo          TipoEmpresa
+  plano         PlanoSaaS  @default(FREE)
+
+  // Contato
+  email         String     @db.VarChar(255)
+  telefone      String?    @db.VarChar(20)
+
+  // Endereço
+  logradouro    String     @db.VarChar(255)
+  numero        String     @db.VarChar(20)
+  complemento   String?    @db.VarChar(100)
+  bairro        String     @db.VarChar(100)
+  cidade        String     @db.VarChar(100)
+  estado        String     @db.VarChar(2)
+  cep           String     @db.VarChar(9)
+  latitude      Float?
+  longitude     Float?
+
+  // Licença ambiental (obrigatória para Transportador e Destinador)
+  licencaAmbiental String? @db.VarChar(100)
+  licencaVencimento DateTime?
+
+  ativo         Boolean    @default(true)
+  criadoEm     DateTime   @default(now()) @map("criado_em")
+  atualizadoEm DateTime   @updatedAt @map("atualizado_em")
+
+  // Relações
+  usuarios      Usuario[]
+  inventarios   InventarioResiduo[]
+  coletasGeradas Coleta[]  @relation("ColetaGerador")
+  coletasColetadas Coleta[] @relation("ColetaTransportador")
+  auditLogs     AuditLog[]
+
+  @@map("empresas")
+}
+
+// ─── Usuario ─────────────────────────────────────────────────────────────
+
+model Usuario {
+  id         String      @id @default(cuid())
+  empresaId  String      @map("empresa_id")
+  email      String      @unique @db.VarChar(255)
+  senhaHash  String      @map("senha_hash") @db.VarChar(255)
+  nome       String      @db.VarChar(255)
+  role       RoleUsuario @default(OPERADOR)
+  ativo      Boolean     @default(true)
+  criadoEm  DateTime    @default(now()) @map("criado_em")
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em")
+
+  // LGPD: data da última vez que dados pessoais foram acessados
+  ultimoAcessoDados DateTime? @map("ultimo_acesso_dados")
+
+  // Relações
+  empresa    Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  refreshTokens RefreshToken[]
+  auditLogs  AuditLog[]
+
+  @@index([empresaId])
+  @@map("usuarios")
+}
+
+// ─── RefreshToken (auth) ─────────────────────────────────────────────────
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  usuarioId  String   @map("usuario_id")
+  token      String   @unique @db.VarChar(512)
+  expiresAt  DateTime @map("expires_at")
+  revogado   Boolean  @default(false)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([usuarioId])
+  @@map("refresh_tokens")
+}
+
+// ─── Residuo (catálogo de tipos de resíduos) ─────────────────────────────
+
+model Residuo {
+  id          String      @id @default(cuid())
+  tipo        TipoResiduo
+  descricao   String      @db.VarChar(255)
+  codigoIbama String?     @map("codigo_ibama") @db.VarChar(50)
+  classeAbnt  String?     @map("classe_abnt") @db.VarChar(20)
+  perigoso    Boolean     @default(false)
+  criadoEm   DateTime    @default(now()) @map("criado_em")
+
+  // Relações
+  inventarios InventarioResiduo[]
+  coletaResiduos ColetaResiduo[]
+
+  @@map("residuos")
+}
+
+// ─── InventarioResiduo (vínculo Empresa ↔ Residuo) ───────────────────────
+
+model InventarioResiduo {
+  id          String          @id @default(cuid())
+  empresaId   String          @map("empresa_id")
+  residuoId   String          @map("residuo_id")
+  quantidade  Float
+  unidade     UnidadeMedida   @default(KG)
+  frequencia  FrequenciaColeta @default(SOB_DEMANDA)
+  observacoes String?         @db.Text
+  ativo       Boolean         @default(true)
+  criadoEm   DateTime        @default(now()) @map("criado_em")
+  atualizadoEm DateTime      @updatedAt @map("atualizado_em")
+
+  empresa     Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  residuo     Residuo         @relation(fields: [residuoId], references: [id])
+
+  @@unique([empresaId, residuoId])
+  @@index([empresaId])
+  @@map("inventario_residuos")
+}
+
+// ─── Coleta ───────────────────────────────────────────────────────────────
+
+model Coleta {
+  id                String       @id @default(cuid())
+  // Multi-tenancy: empresa geradora do resíduo
+  empresaId         String       @map("empresa_id")
+  // Empresa transportadora (pode ser nula até confirmação)
+  transportadorId   String?      @map("transportador_id")
+
+  status            StatusColeta @default(PENDENTE)
+  dataAgendada      DateTime     @map("data_agendada")
+  dataRealizada     DateTime?    @map("data_realizada")
+
+  // Endereço de coleta (copiado no momento do agendamento)
+  logradouro        String       @db.VarChar(255)
+  numero            String       @db.VarChar(20)
+  complemento       String?      @db.VarChar(100)
+  bairro            String       @db.VarChar(100)
+  cidade            String       @db.VarChar(100)
+  estado            String       @db.VarChar(2)
+  cep               String       @db.VarChar(9)
+  latitude          Float?
+  longitude         Float?
+
+  // Dados da coleta real
+  pesoRealKg        Float?       @map("peso_real_kg")
+  observacoes       String?      @db.Text
+  fotoEvidenciaUrl  String?      @map("foto_evidencia_url")
+
+  criadoEm         DateTime     @default(now()) @map("criado_em")
+  atualizadoEm     DateTime     @updatedAt @map("atualizado_em")
+
+  // Relações
+  empresa           Empresa      @relation("ColetaGerador", fields: [empresaId], references: [id])
+  transportador     Empresa?     @relation("ColetaTransportador", fields: [transportadorId], references: [id])
+  residuos          ColetaResiduo[]
+  manifesto         ManifestoMTR?
+  statusHistorico   ColetaStatusHistorico[]
+
+  @@index([empresaId])
+  @@index([transportadorId])
+  @@index([status])
+  @@index([dataAgendada])
+  @@map("coletas")
+}
+
+// ─── ColetaResiduo (N:N entre Coleta e Residuo) ─────────────────────────
+
+model ColetaResiduo {
+  id                  String        @id @default(cuid())
+  coletaId            String        @map("coleta_id")
+  residuoId           String        @map("residuo_id")
+  quantidadeEstimada  Float         @map("quantidade_estimada")
+  quantidadeReal      Float?        @map("quantidade_real")
+  unidade             UnidadeMedida @default(KG)
+
+  coleta              Coleta        @relation(fields: [coletaId], references: [id], onDelete: Cascade)
+  residuo             Residuo       @relation(fields: [residuoId], references: [id])
+
+  @@unique([coletaId, residuoId])
+  @@map("coleta_residuos")
+}
+
+// ─── ColetaStatusHistorico (auditoria de transições) ────────────────────
+
+model ColetaStatusHistorico {
+  id          String       @id @default(cuid())
+  coletaId    String       @map("coleta_id")
+  statusAntes StatusColeta @map("status_antes")
+  statusDepois StatusColeta @map("status_depois")
+  motivo      String?      @db.VarChar(255)
+  criadoEm   DateTime     @default(now()) @map("criado_em")
+
+  coleta      Coleta       @relation(fields: [coletaId], references: [id], onDelete: Cascade)
+
+  @@index([coletaId])
+  @@map("coleta_status_historico")
+}
+
+// ─── ManifestoMTR ────────────────────────────────────────────────────────
+
+model ManifestoMTR {
+  id            String     @id @default(cuid())
+  coletaId      String     @unique @map("coleta_id")
+
+  // Dados do SINIR
+  numeroSinir   String?    @map("numero_sinir") @db.VarChar(50)
+  qrCode        String?    @map("qr_code") @db.Text
+  pdfUrl        String?    @map("pdf_url") @db.VarChar(512)
+
+  status        StatusMTR  @default(RASCUNHO)
+
+  // Conformidade CONAMA 275/2001
+  // Assinaturas digitais (base64 ou hash)
+  assinaturaGerador      String? @map("assinatura_gerador") @db.Text
+  assinaturaTransportador String? @map("assinatura_transportador") @db.Text
+  assinaturaDestinador    String? @map("assinatura_destinador") @db.Text
+
+  emitidoEm    DateTime?  @map("emitido_em")
+  aceitoEm     DateTime?  @map("aceito_em")
+  finalizadoEm DateTime?  @map("finalizado_em")
+  criadoEm     DateTime   @default(now()) @map("criado_em")
+  atualizadoEm DateTime   @updatedAt @map("atualizado_em")
+
+  coleta        Coleta     @relation(fields: [coletaId], references: [id])
+
+  @@index([numeroSinir])
+  @@map("manifestos_mtr")
+}
+
+// ─── AuditLog (LGPD — log de acesso a dados pessoais) ───────────────────
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  empresaId   String   @map("empresa_id")
+  usuarioId   String?  @map("usuario_id")
+  acao        String   @db.VarChar(100)
+  recurso     String   @db.VarChar(100)
+  recursoId   String?  @map("recurso_id") @db.VarChar(100)
+  detalhes    Json?
+  ip          String?  @db.VarChar(45)
+  userAgent   String?  @map("user_agent") @db.VarChar(500)
+  criadoEm   DateTime @default(now()) @map("criado_em")
+
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  usuario     Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@index([empresaId])
+  @@index([usuarioId])
+  @@index([criadoEm])
+  @@map("audit_logs")
+}
