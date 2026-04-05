@@ -11,6 +11,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 import type { Usuario, Empresa, RoleUsuario, TipoEmpresa } from "@ecotrack/shared";
