@@ -72,6 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, isLoading: false }));
   }, []);
 
+  // Inicializar sessão ao montar o provider
+  useEffect(() => {
+    refreshSession();
+  }, [refreshSession]);
+
   return (
     <AuthContext.Provider value={{ ...state, login, logout, refreshSession }}>
       {children}
