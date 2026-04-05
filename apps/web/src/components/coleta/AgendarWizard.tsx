@@ -11,7 +11,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES, STATUS_COLETA_LABELS } from "@ecotrack/shared";
 import { ResidueCard } from "@/components/ui/ResidueCard";
-import type { TipoResiduo } from "@ecotrack/shared";
+import { TipoResiduo } from "@ecotrack/shared";
 
 const ETAPAS = ["Residuos", "Data e Volume", "Confirmacao"] as const;
 
