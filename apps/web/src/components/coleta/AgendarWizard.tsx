@@ -29,11 +29,11 @@ const LABELS = {
 
 // Tipos de residuo disponiveis (em producao: viriam do inventario da empresa)
 const TIPOS_RESIDUO: Array<{ tipo: TipoResiduo; label: string; descricao: string }> = [
-  { tipo: "ORGANICO", label: "Residuo Organico", descricao: "Restos de alimentos, cascas, etc." },
-  { tipo: "RECICLAVEL", label: "Reciclavel", descricao: "Papel, plastico, vidro, metal" },
-  { tipo: "ELETRONICO", label: "Eletronico", descricao: "Equipamentos, pilhas, baterias" },
-  { tipo: "HOSPITALAR", label: "Hospitalar", descricao: "Material infectante, perfurocortante" },
-  { tipo: "PERIGOSO", label: "Perigoso", descricao: "Quimicos, solventes, tintas" },
+  { tipo: TipoResiduo.ORGANICO, label: "Residuo Organico", descricao: "Restos de alimentos, cascas, etc." },
+  { tipo: TipoResiduo.RECICLAVEL, label: "Reciclavel", descricao: "Papel, plastico, vidro, metal" },
+  { tipo: TipoResiduo.ELETRONICO, label: "Eletronico", descricao: "Equipamentos, pilhas, baterias" },
+  { tipo: TipoResiduo.HOSPITALAR, label: "Hospitalar", descricao: "Material infectante, perfurocortante" },
+  { tipo: TipoResiduo.PERIGOSO, label: "Perigoso", descricao: "Quimicos, solventes, tintas" },
 ];
 
 interface AgendamentoState {
