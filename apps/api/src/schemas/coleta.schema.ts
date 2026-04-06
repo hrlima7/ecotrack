@@ -12,7 +12,7 @@ export const criarColetaSchema = z.object({
   residuos: z
     .array(
       z.object({
-        residuoId: z.string().cuid("ID de resíduo inválido"),
+        residuoId: z.string().min(1, "ID de resíduo inválido"),
         quantidadeEstimada: z
           .number()
           .positive("Quantidade deve ser positiva"),
