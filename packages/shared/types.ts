@@ -208,9 +208,10 @@ export interface JwtPayload {
   empresaId: string;
   email: string;
   role: RoleUsuario;
-  tipo: TipoEmpresa;
-  iat: number;
-  exp: number;
+  /** Presente apenas no refresh token */
+  type?: "refresh";
+  iat?: number;
+  exp?: number;
 }
 
 export interface LoginRequest {
