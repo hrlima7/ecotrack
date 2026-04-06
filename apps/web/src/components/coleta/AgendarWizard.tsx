@@ -133,19 +133,32 @@ export function AgendarWizard() {
           <p className="text-sm font-medium text-foreground">
             {LABELS.SELECIONE_RESIDUO}
           </p>
+          {loadingInventario ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              Carregando inventário...
+            </div>
+          ) : residuosDisponiveis.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              Nenhum resíduo cadastrado no inventário. Adicione resíduos antes de agendar.
+            </div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {TIPOS_RESIDUO.map((item) => (
+            {residuosDisponiveis.map((item) => (
               <button
-                key={item.tipo}
+                key={item.residuoId}
                 type="button"
-                onClick={() => selecionarResiduo(item.tipo)}
+                onClick={() => selecionarResiduo(item.residuo.tipo as TipoResiduo)}
                 className={`text-left p-4 rounded-lg border-2 transition-colors
-                  ${dados.residuoTipo === item.tipo
+                  ${dados.residuoTipo === item.residuo.tipo
                     ? "border-primary bg-primary-50"
                     : "border-border hover:border-primary-300 hover:bg-muted"}`}
-                aria-pressed={dados.residuoTipo === item.tipo}
+                aria-pressed={dados.residuoTipo === item.residuo.tipo}
               >
-                <ResidueCard tipo={item.tipo} label={item.label} descricao={item.descricao} />
+                <ResidueCard
+                  tipo={item.residuo.tipo as TipoResiduo}
+                  label={item.residuo.descricao}
+                  descricao={`${item.quantidade} ${item.unidade.toLowerCase()} / ${item.frequencia.toLowerCase()}`}
+                />
               </button>
             ))}
           </div>
