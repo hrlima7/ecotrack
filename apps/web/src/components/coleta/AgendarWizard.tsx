@@ -48,8 +48,10 @@ interface AgendamentoState {
 
 export function AgendarWizard() {
   const router = useRouter();
+  const { criar } = useColetas();
+  const { data: inventario, isLoading: loadingInventario } = useInventario();
   const [etapaAtual, setEtapaAtual] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
   const [dados, setDados] = useState<AgendamentoState>({
     residuoTipo: null,
     dataAgendada: "",
@@ -57,6 +59,9 @@ export function AgendarWizard() {
     unidade: "KG",
     observacoes: "",
   });
+
+  // Mapear inventário para a lista de resíduos disponíveis
+  const residuosDisponiveis = inventario?.data ?? [];
 
   function selecionarResiduo(tipo: TipoResiduo) {
     setDados((prev) => ({ ...prev, residuoTipo: tipo }));
@@ -71,12 +76,32 @@ export function AgendarWizard() {
   }
 
   async function confirmarAgendamento() {
-    setIsSubmitting(true);
+    setErro(null);
+    // Encontrar o residuoId a partir do tipo selecionado
+    const itemInventario = residuosDisponiveis.find(
+      (item) => item.residuo.tipo === dados.residuoTipo
+    );
+
+    if (!itemInventario) {
+      setErro("Resíduo selecionado não encontrado no inventário");
+      return;
+    }
+
     try {
-      // TODO: chamar API POST /api/v1/coletas
+      await criar.mutateAsync({
+        dataAgendada: new Date(dados.dataAgendada).toISOString(),
+        residuos: [
+          {
+            residuoId: itemInventario.residuoId,
+            quantidadeEstimada: dados.quantidade,
+            unidade: dados.unidade,
+          },
+        ],
+        observacoes: dados.observacoes || undefined,
+      });
       router.push(ROUTES.DASHBOARD);
-    } finally {
-      setIsSubmitting(false);
+    } catch (e: unknown) {
+      setErro(e instanceof Error ? e.message : "Erro ao agendar coleta");
     }
   }
 
