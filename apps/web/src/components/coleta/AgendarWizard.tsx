@@ -9,9 +9,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ROUTES, STATUS_COLETA_LABELS } from "@ecotrack/shared";
-import { ResidueCard } from "@/components/ui/ResidueCard";
+import { ROUTES } from "@ecotrack/shared";
 import { TipoResiduo } from "@ecotrack/shared";
+import { ResidueCard } from "@/components/ui/ResidueCard";
+import { useColetas } from "@/hooks/useColetas";
+import { useInventario } from "@/hooks/useInventario";
 
 const ETAPAS = ["Residuos", "Data e Volume", "Confirmacao"] as const;
 
