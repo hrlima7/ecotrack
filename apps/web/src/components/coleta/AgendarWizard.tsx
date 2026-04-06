@@ -162,10 +162,11 @@ export function AgendarWizard() {
               </button>
             ))}
           </div>
+          )}
           <button
             type="button"
             className="btn-primary w-full"
-            disabled={!dados.residuoTipo}
+            disabled={!dados.residuoTipo || loadingInventario}
             onClick={avancarEtapa}
           >
             {LABELS.PROXIMO}
