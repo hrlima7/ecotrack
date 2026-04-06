@@ -300,12 +300,12 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       const newAccessToken = fastify.jwt.sign({
         sub: usuario.id,
         empresaId: usuario.empresaId,
-        role: usuario.role,
+        role: usuario.role as RoleUsuario,
         email: usuario.email,
       });
 
       const newRefreshToken = fastify.jwt.sign(
-        { sub: usuario.id, type: "refresh" },
+        { sub: usuario.id, empresaId: usuario.empresaId, role: usuario.role as RoleUsuario, email: usuario.email, type: "refresh" as const },
         { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" }
       );
 
