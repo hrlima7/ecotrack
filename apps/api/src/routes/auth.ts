@@ -9,6 +9,7 @@
 
 import type { FastifyPluginAsync } from "fastify";
 import bcrypt from "bcrypt";
+import type { RoleUsuario } from "@ecotrack/shared";
 import { loginSchema, cadastroEmpresaSchema, refreshTokenSchema } from "../schemas/auth.schema";
 
 const BCRYPT_ROUNDS = 12;
