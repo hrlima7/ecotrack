@@ -8,7 +8,10 @@
  */
 
 import type { FastifyPluginAsync } from "fastify";
+import bcrypt from "bcrypt";
 import { loginSchema, cadastroEmpresaSchema, refreshTokenSchema } from "../schemas/auth.schema";
+
+const BCRYPT_ROUNDS = 12;
 
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
   // POST /login
@@ -29,21 +32,94 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (req, reply) => {
-      const input = loginSchema.parse(req.body);
+      const { email, senha } = loginSchema.parse(req.body);
 
-      // TODO: implementar lógica de autenticação
-      // 1. Buscar usuário pelo email (filtrando por empresa ativa)
-      // 2. Verificar senha com bcrypt
-      // 3. Gerar accessToken (JWT) + refreshToken
-      // 4. Salvar refreshToken no banco
-      // 5. Log de auditoria LGPD
+      // 1. Buscar usuário pelo email (empresa ativa)
+      const usuario = await fastify.prisma.usuario.findFirst({
+        where: {
+          email,
+          ativo: true,
+          empresa: { ativo: true },
+        },
+        include: {
+          empresa: {
+            select: { id: true, razaoSocial: true, nomeFantasia: true, tipo: true, plano: true },
+          },
+        },
+      });
+
+      if (!usuario) {
+        return reply.status(401).send({
+          success: false,
+          error: { code: "INVALID_CREDENTIALS", message: "E-mail ou senha inválidos" },
+        });
+      }
+
+      // 2. Verificar senha
+      const senhaValida = await bcrypt.compare(senha, usuario.senhaHash);
+      if (!senhaValida) {
+        return reply.status(401).send({
+          success: false,
+          error: { code: "INVALID_CREDENTIALS", message: "E-mail ou senha inválidos" },
+        });
+      }
+
+      // 3. Gerar access token
+      const accessToken = fastify.jwt.sign({
+        sub: usuario.id,
+        empresaId: usuario.empresaId,
+        role: usuario.role,
+        email: usuario.email,
+      });
+
+      // 4. Gerar refresh token e salvar no banco
+      const refreshToken = fastify.jwt.sign(
+        { sub: usuario.id, type: "refresh" },
+        { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" }
+      );
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      await fastify.prisma.refreshToken.create({
+        data: {
+          usuarioId: usuario.id,
+          token: refreshToken,
+          expiresAt,
+        },
+      });
+
+      // 5. Log LGPD: acesso a dados pessoais
+      await fastify.prisma.auditLog.create({
+        data: {
+          empresaId: usuario.empresaId,
+          usuarioId: usuario.id,
+          acao: "LOGIN",
+          recurso: "usuario",
+          recursoId: usuario.id,
+          ip: req.ip,
+          userAgent: req.headers["user-agent"] ?? null,
+        },
+      });
+
+      // 6. Atualizar último acesso
+      await fastify.prisma.usuario.update({
+        where: { id: usuario.id },
+        data: { ultimoAcessoDados: new Date() },
+      });
 
       return reply.status(200).send({
         success: true,
         data: {
-          accessToken: "stub_access_token",
-          refreshToken: "stub_refresh_token",
-          usuario: { id: "stub_id", nome: "Stub User", email: input.email },
+          accessToken,
+          refreshToken,
+          usuario: {
+            id: usuario.id,
+            nome: usuario.nome,
+            email: usuario.email,
+            role: usuario.role,
+            empresa: usuario.empresa,
+          },
         },
       });
     }
@@ -61,17 +137,115 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     async (req, reply) => {
       const input = cadastroEmpresaSchema.parse(req.body);
 
-      // TODO: implementar lógica de cadastro
       // 1. Verificar se CNPJ já existe
-      // 2. Criar Empresa
-      // 3. Criar Usuario admin com senhaHash (bcrypt)
-      // 4. Gerar tokens
+      const empresaExistente = await fastify.prisma.empresa.findUnique({
+        where: { cnpj: input.cnpj },
+      });
+
+      if (empresaExistente) {
+        return reply.status(409).send({
+          success: false,
+          error: { code: "CNPJ_ALREADY_EXISTS", message: "CNPJ já cadastrado na plataforma" },
+        });
+      }
+
+      // 2. Verificar se email admin já existe
+      const emailExistente = await fastify.prisma.usuario.findUnique({
+        where: { email: input.emailAdmin },
+      });
+
+      if (emailExistente) {
+        return reply.status(409).send({
+          success: false,
+          error: { code: "EMAIL_ALREADY_EXISTS", message: "E-mail já cadastrado na plataforma" },
+        });
+      }
+
+      // 3. Hash da senha
+      const senhaHash = await bcrypt.hash(input.senhaAdmin, BCRYPT_ROUNDS);
+
+      // 4. Criar Empresa + Usuario admin em transação
+      const { empresa, usuario } = await fastify.prisma.$transaction(async (tx) => {
+        const empresa = await tx.empresa.create({
+          data: {
+            cnpj: input.cnpj,
+            razaoSocial: input.razaoSocial,
+            nomeFantasia: input.nomeFantasia,
+            tipo: input.tipo,
+            email: input.email,
+            telefone: input.telefone,
+            logradouro: input.logradouro,
+            numero: input.numero,
+            complemento: input.complemento,
+            bairro: input.bairro,
+            cidade: input.cidade,
+            estado: input.estado,
+            cep: input.cep,
+          },
+        });
+
+        const usuario = await tx.usuario.create({
+          data: {
+            empresaId: empresa.id,
+            nome: input.nomeAdmin,
+            email: input.emailAdmin,
+            senhaHash,
+            role: "ADMIN",
+          },
+        });
+
+        return { empresa, usuario };
+      });
+
+      // 5. Gerar tokens para login automático após cadastro
+      const accessToken = fastify.jwt.sign({
+        sub: usuario.id,
+        empresaId: empresa.id,
+        role: usuario.role,
+        email: usuario.email,
+      });
+
+      const refreshToken = fastify.jwt.sign(
+        { sub: usuario.id, type: "refresh" },
+        { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" }
+      );
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      await fastify.prisma.refreshToken.create({
+        data: { usuarioId: usuario.id, token: refreshToken, expiresAt },
+      });
+
+      // 6. Log de auditoria
+      await fastify.prisma.auditLog.create({
+        data: {
+          empresaId: empresa.id,
+          usuarioId: usuario.id,
+          acao: "CADASTRO",
+          recurso: "empresa",
+          recursoId: empresa.id,
+          ip: req.ip,
+          userAgent: req.headers["user-agent"] ?? null,
+        },
+      });
 
       return reply.status(201).send({
         success: true,
         data: {
-          empresaId: "stub_empresa_id",
-          mensagem: "Empresa cadastrada com sucesso",
+          accessToken,
+          refreshToken,
+          empresa: {
+            id: empresa.id,
+            razaoSocial: empresa.razaoSocial,
+            tipo: empresa.tipo,
+          },
+          usuario: {
+            id: usuario.id,
+            nome: usuario.nome,
+            email: usuario.email,
+            role: usuario.role,
+          },
         },
       });
     }
@@ -87,16 +261,66 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (req, reply) => {
-      const input = refreshTokenSchema.parse(req.body);
+      const { refreshToken } = refreshTokenSchema.parse(req.body);
 
-      // TODO: implementar renovação de token
-      // 1. Verificar refreshToken no banco (não revogado, não expirado)
-      // 2. Gerar novo accessToken
-      // 3. Opcionalmente rotacionar refreshToken
+      // 1. Verificar refresh token no banco
+      const tokenRecord = await fastify.prisma.refreshToken.findUnique({
+        where: { token: refreshToken },
+        include: {
+          usuario: {
+            include: {
+              empresa: { select: { id: true, ativo: true } },
+            },
+          },
+        },
+      });
+
+      if (
+        !tokenRecord ||
+        tokenRecord.revogado ||
+        tokenRecord.expiresAt < new Date() ||
+        !tokenRecord.usuario.ativo ||
+        !tokenRecord.usuario.empresa.ativo
+      ) {
+        return reply.status(401).send({
+          success: false,
+          error: { code: "INVALID_REFRESH_TOKEN", message: "Refresh token inválido ou expirado" },
+        });
+      }
+
+      const usuario = tokenRecord.usuario;
+
+      // 2. Revogar token antigo e emitir novo (rotação)
+      await fastify.prisma.refreshToken.update({
+        where: { id: tokenRecord.id },
+        data: { revogado: true },
+      });
+
+      const newAccessToken = fastify.jwt.sign({
+        sub: usuario.id,
+        empresaId: usuario.empresaId,
+        role: usuario.role,
+        email: usuario.email,
+      });
+
+      const newRefreshToken = fastify.jwt.sign(
+        { sub: usuario.id, type: "refresh" },
+        { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" }
+      );
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      await fastify.prisma.refreshToken.create({
+        data: { usuarioId: usuario.id, token: newRefreshToken, expiresAt },
+      });
 
       return reply.status(200).send({
         success: true,
-        data: { accessToken: "stub_new_access_token" },
+        data: {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+        },
       });
     }
   );
@@ -113,7 +337,14 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       },
     },
     async (req, reply) => {
-      // TODO: revogar refreshToken no banco
+      const { refreshToken } = refreshTokenSchema.parse(req.body);
+      const { sub: usuarioId } = req.user;
+
+      // Revogar o refresh token informado (pertencente ao usuário autenticado)
+      await fastify.prisma.refreshToken.updateMany({
+        where: { token: refreshToken, usuarioId, revogado: false },
+        data: { revogado: true },
+      });
 
       return reply.status(200).send({
         success: true,
@@ -136,12 +367,50 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     async (req, reply) => {
       const { sub: usuarioId, empresaId } = req.user;
 
-      // TODO: buscar dados completos do usuário + empresa
+      const usuario = await fastify.prisma.usuario.findUnique({
+        where: { id: usuarioId },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          role: true,
+          criadoEm: true,
+          empresa: {
+            select: {
+              id: true,
+              razaoSocial: true,
+              nomeFantasia: true,
+              tipo: true,
+              plano: true,
+              cnpj: true,
+            },
+          },
+        },
+      });
+
+      if (!usuario) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: "NOT_FOUND", message: "Usuário não encontrado" },
+        });
+      }
+
       // LGPD: registrar acesso a dados pessoais
+      await fastify.prisma.auditLog.create({
+        data: {
+          empresaId,
+          usuarioId,
+          acao: "ACESSO_DADOS_PESSOAIS",
+          recurso: "usuario",
+          recursoId: usuarioId,
+          ip: req.ip,
+          userAgent: req.headers["user-agent"] ?? null,
+        },
+      });
 
       return reply.status(200).send({
         success: true,
-        data: { usuarioId, empresaId },
+        data: usuario,
       });
     }
   );
