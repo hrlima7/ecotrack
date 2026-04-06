@@ -295,6 +295,12 @@ export function AgendarWizard() {
             )}
           </div>
 
+          {erro && (
+            <div role="alert" className="rounded-md bg-danger-50 border border-danger-200 px-3 py-2.5 text-sm text-danger-700">
+              {erro}
+            </div>
+          )}
+
           <div className="flex gap-3">
             <button type="button" className="btn-secondary flex-1" onClick={voltarEtapa}>
               {LABELS.VOLTAR}
@@ -302,10 +308,10 @@ export function AgendarWizard() {
             <button
               type="button"
               className="btn-primary flex-1"
-              disabled={isSubmitting}
+              disabled={criar.isPending}
               onClick={confirmarAgendamento}
             >
-              {isSubmitting ? LABELS.CONFIRMANDO : LABELS.CONFIRMAR}
+              {criar.isPending ? LABELS.CONFIRMANDO : LABELS.CONFIRMAR}
             </button>
           </div>
         </div>
