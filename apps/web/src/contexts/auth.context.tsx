@@ -16,8 +16,9 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import type { RoleUsuario, TipoEmpresa, PlanoSaaS } from "@ecotrack/shared";
-import { API_ROUTES } from "@ecotrack/shared";
+import { API_ROUTES, ROUTES } from "@ecotrack/shared";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
