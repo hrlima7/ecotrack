@@ -6,21 +6,33 @@
  * PATCH  /api/v1/coletas/:id/status   — atualizar status
  * DELETE /api/v1/coletas/:id          — cancelar
  *
- * IMPORTANTE: Todas as queries filtram por `empresaId` do JWT (multi-tenancy).
+ * Multi-tenancy: todas as queries filtram por `empresaId` do JWT.
+ * Status flow: PENDENTE → CONFIRMADA → EM_ROTA → COLETADO → FINALIZADO | CANCELADO
  */
 
 import type { FastifyPluginAsync } from "fastify";
+import { CANCELAMENTO_PRAZO_HORAS } from "@ecotrack/shared";
 import {
   criarColetaSchema,
   atualizarStatusColetaSchema,
   filtrosColetaSchema,
 } from "../schemas/coleta.schema";
 
+// Transições de status permitidas (máquina de estados)
+const TRANSICOES_PERMITIDAS: Record<string, string[]> = {
+  PENDENTE:   ["CONFIRMADA", "CANCELADO"],
+  CONFIRMADA: ["EM_ROTA", "CANCELADO"],
+  EM_ROTA:    ["COLETADO"],
+  COLETADO:   ["FINALIZADO"],
+  FINALIZADO: [],
+  CANCELADO:  [],
+};
+
 export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
   // Todas as rotas exigem autenticação
   fastify.addHook("onRequest", fastify.authenticate);
 
-  // GET / — listar coletas da empresa autenticada
+  // ─── GET / — listar coletas da empresa autenticada ──────────────────────────
   fastify.get(
     "/",
     {
@@ -42,25 +54,51 @@ export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (req, reply) => {
       const { empresaId } = req.user;
-      const filtros = filtrosColetaSchema.parse(req.query);
+      const { status, dataInicio, dataFim, page, limit } = filtrosColetaSchema.parse(req.query);
 
-      // TODO: implementar query com Prisma
-      // prisma.coleta.findMany({ where: { empresaId, ...filtros }, ... })
+      const where = {
+        empresaId,
+        ...(status && { status }),
+        ...(dataInicio || dataFim
+          ? {
+              dataAgendada: {
+                ...(dataInicio && { gte: new Date(dataInicio) }),
+                ...(dataFim && { lte: new Date(dataFim) }),
+              },
+            }
+          : {}),
+      };
+
+      const [coletas, total] = await Promise.all([
+        fastify.prisma.coleta.findMany({
+          where,
+          orderBy: { dataAgendada: "desc" },
+          skip: (page - 1) * limit,
+          take: limit,
+          include: {
+            residuos: {
+              include: { residuo: { select: { tipo: true, descricao: true } } },
+            },
+            manifesto: { select: { id: true, status: true, numeroSinir: true } },
+          },
+        }),
+        fastify.prisma.coleta.count({ where }),
+      ]);
 
       return reply.status(200).send({
         success: true,
-        data: [],
+        data: coletas,
         meta: {
-          page: filtros.page,
-          limit: filtros.limit,
-          total: 0,
-          totalPages: 0,
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
         },
       });
     }
   );
 
-  // POST / — criar agendamento de coleta
+  // ─── POST / — criar agendamento de coleta ───────────────────────────────────
   fastify.post(
     "/",
     {
@@ -74,25 +112,109 @@ export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
       const { empresaId } = req.user;
       const input = criarColetaSchema.parse(req.body);
 
-      // TODO: implementar criação
-      // 1. Validar inventário de resíduos da empresa
-      // 2. Criar Coleta com ColetaResiduo[]
-      // 3. Disparar notificação aos transportadores (fila BullMQ)
-      // 4. Criar ManifestoMTR em rascunho
+      // 1. Validar que os resíduos pertencem ao inventário da empresa
+      const residuoIds = input.residuos.map((r) => r.residuoId);
+      const inventario = await fastify.prisma.inventarioResiduo.findMany({
+        where: { empresaId, residuoId: { in: residuoIds }, ativo: true },
+      });
 
-      return reply.status(201).send({
-        success: true,
-        data: {
-          id: "stub_coleta_id",
-          empresaId,
-          status: "PENDENTE",
-          dataAgendada: input.dataAgendada,
+      if (inventario.length !== residuoIds.length) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "RESIDUO_NAO_ENCONTRADO",
+            message: "Um ou mais resíduos não pertencem ao inventário da empresa",
+          },
+        });
+      }
+
+      // 2. Buscar endereço da empresa se não informado no payload
+      const empresa = await fastify.prisma.empresa.findUnique({
+        where: { id: empresaId },
+        select: {
+          logradouro: true, numero: true, complemento: true,
+          bairro: true, cidade: true, estado: true, cep: true,
+          latitude: true, longitude: true,
         },
       });
+
+      if (!empresa) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: "EMPRESA_NAO_ENCONTRADA", message: "Empresa não encontrada" },
+        });
+      }
+
+      const enderecoColeta = input.endereco ?? empresa;
+
+      // 3. Criar Coleta + ColetaResiduo[] em transação + ManifestoMTR rascunho
+      const coleta = await fastify.prisma.$transaction(async (tx) => {
+        const coleta = await tx.coleta.create({
+          data: {
+            empresaId,
+            status: "PENDENTE",
+            dataAgendada: new Date(input.dataAgendada),
+            observacoes: input.observacoes,
+            logradouro: enderecoColeta.logradouro,
+            numero: enderecoColeta.numero,
+            complemento: enderecoColeta.complemento ?? null,
+            bairro: enderecoColeta.bairro,
+            cidade: enderecoColeta.cidade,
+            estado: enderecoColeta.estado,
+            cep: enderecoColeta.cep,
+            latitude: enderecoColeta.latitude ?? null,
+            longitude: enderecoColeta.longitude ?? null,
+            residuos: {
+              create: input.residuos.map((r) => ({
+                residuoId: r.residuoId,
+                quantidadeEstimada: r.quantidadeEstimada,
+                unidade: r.unidade,
+              })),
+            },
+          },
+          include: {
+            residuos: {
+              include: { residuo: { select: { tipo: true, descricao: true } } },
+            },
+          },
+        });
+
+        // Criar ManifestoMTR em rascunho
+        await tx.manifestoMTR.create({
+          data: { coletaId: coleta.id, status: "RASCUNHO" },
+        });
+
+        // Registrar status inicial no histórico
+        await tx.coletaStatusHistorico.create({
+          data: {
+            coletaId: coleta.id,
+            statusAntes: "PENDENTE",
+            statusDepois: "PENDENTE",
+            motivo: "Coleta agendada pelo gerador",
+          },
+        });
+
+        return coleta;
+      });
+
+      // 4. Log de auditoria
+      await fastify.prisma.auditLog.create({
+        data: {
+          empresaId,
+          usuarioId: req.user.sub,
+          acao: "CRIAR_COLETA",
+          recurso: "coleta",
+          recursoId: coleta.id,
+          ip: req.ip,
+          userAgent: req.headers["user-agent"] ?? null,
+        },
+      });
+
+      return reply.status(201).send({ success: true, data: coleta });
     }
   );
 
-  // GET /:id — detalhar coleta
+  // ─── GET /:id — detalhar coleta ─────────────────────────────────────────────
   fastify.get(
     "/:id",
     {
@@ -111,17 +233,32 @@ export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
       const { empresaId } = req.user;
       const { id } = req.params as { id: string };
 
-      // TODO: prisma.coleta.findFirst({ where: { id, empresaId } })
-      // Retornar 404 se não encontrada (multi-tenancy: nunca expor coleta de outra empresa)
-
-      return reply.status(200).send({
-        success: true,
-        data: { id, empresaId, status: "PENDENTE" },
+      const coleta = await fastify.prisma.coleta.findFirst({
+        where: { id, empresaId }, // multi-tenancy garantido
+        include: {
+          residuos: {
+            include: { residuo: true },
+          },
+          manifesto: true,
+          statusHistorico: { orderBy: { criadoEm: "asc" } },
+          transportador: {
+            select: { id: true, razaoSocial: true, nomeFantasia: true, telefone: true },
+          },
+        },
       });
+
+      if (!coleta) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: "NOT_FOUND", message: "Coleta não encontrada" },
+        });
+      }
+
+      return reply.status(200).send({ success: true, data: coleta });
     }
   );
 
-  // PATCH /:id/status — atualizar status
+  // ─── PATCH /:id/status — atualizar status ───────────────────────────────────
   fastify.patch(
     "/:id/status",
     {
@@ -136,20 +273,66 @@ export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
       const { id } = req.params as { id: string };
       const input = atualizarStatusColetaSchema.parse(req.body);
 
-      // TODO: implementar transição de status
-      // 1. Validar se transição é permitida (máquina de estados)
-      // 2. Atualizar Coleta.status
-      // 3. Criar ColetaStatusHistorico
-      // 4. Disparar webhook/notificação se necessário
-
-      return reply.status(200).send({
-        success: true,
-        data: { id, status: input.status },
+      const coleta = await fastify.prisma.coleta.findFirst({
+        where: { id, empresaId },
       });
+
+      if (!coleta) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: "NOT_FOUND", message: "Coleta não encontrada" },
+        });
+      }
+
+      // Validar transição de status
+      const transicoesPermitidas = TRANSICOES_PERMITIDAS[coleta.status] ?? [];
+      if (!transicoesPermitidas.includes(input.status)) {
+        return reply.status(422).send({
+          success: false,
+          error: {
+            code: "TRANSICAO_INVALIDA",
+            message: `Não é possível alterar status de ${coleta.status} para ${input.status}`,
+          },
+        });
+      }
+
+      const coletaAtualizada = await fastify.prisma.$transaction(async (tx) => {
+        const atualizada = await tx.coleta.update({
+          where: { id },
+          data: {
+            status: input.status,
+            ...(input.status === "COLETADO" && {
+              dataRealizada: new Date(),
+              ...(input.pesoRealKg && { pesoRealKg: input.pesoRealKg }),
+            }),
+          },
+        });
+
+        await tx.coletaStatusHistorico.create({
+          data: {
+            coletaId: id,
+            statusAntes: coleta.status,
+            statusDepois: input.status,
+            motivo: input.motivo ?? null,
+          },
+        });
+
+        // Finalizar MTR quando coleta for FINALIZADO
+        if (input.status === "FINALIZADO") {
+          await tx.manifestoMTR.updateMany({
+            where: { coletaId: id, status: "ACEITO" },
+            data: { status: "FINALIZADO", finalizadoEm: new Date() },
+          });
+        }
+
+        return atualizada;
+      });
+
+      return reply.status(200).send({ success: true, data: coletaAtualizada });
     }
   );
 
-  // DELETE /:id — cancelar coleta
+  // ─── DELETE /:id — cancelar coleta ──────────────────────────────────────────
   fastify.delete(
     "/:id",
     {
@@ -163,11 +346,62 @@ export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
       const { empresaId } = req.user;
       const { id } = req.params as { id: string };
 
-      // TODO: implementar cancelamento
-      // 1. Verificar se a coleta pertence à empresa (multi-tenancy)
-      // 2. Verificar prazo de cancelamento (24h)
-      // 3. Atualizar status para CANCELADO
-      // 4. Notificar transportador se já confirmado
+      const coleta = await fastify.prisma.coleta.findFirst({
+        where: { id, empresaId },
+      });
+
+      if (!coleta) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: "NOT_FOUND", message: "Coleta não encontrada" },
+        });
+      }
+
+      if (["COLETADO", "FINALIZADO", "CANCELADO"].includes(coleta.status)) {
+        return reply.status(422).send({
+          success: false,
+          error: {
+            code: "CANCELAMENTO_NAO_PERMITIDO",
+            message: `Coleta com status ${coleta.status} não pode ser cancelada`,
+          },
+        });
+      }
+
+      // Verificar prazo de 24h
+      const horasAteColeta =
+        (coleta.dataAgendada.getTime() - Date.now()) / (1000 * 60 * 60);
+
+      if (horasAteColeta < CANCELAMENTO_PRAZO_HORAS) {
+        return reply.status(422).send({
+          success: false,
+          error: {
+            code: "PRAZO_CANCELAMENTO_EXPIRADO",
+            message: `Cancelamento permitido apenas até ${CANCELAMENTO_PRAZO_HORAS}h antes da coleta`,
+          },
+        });
+      }
+
+      await fastify.prisma.$transaction(async (tx) => {
+        await tx.coleta.update({
+          where: { id },
+          data: { status: "CANCELADO" },
+        });
+
+        await tx.coletaStatusHistorico.create({
+          data: {
+            coletaId: id,
+            statusAntes: coleta.status,
+            statusDepois: "CANCELADO",
+            motivo: "Cancelado pelo gerador",
+          },
+        });
+
+        // Cancelar MTR rascunho vinculado
+        await tx.manifestoMTR.updateMany({
+          where: { coletaId: id, status: { in: ["RASCUNHO", "EMITIDO"] } },
+          data: { status: "CANCELADO" },
+        });
+      });
 
       return reply.status(200).send({
         success: true,
