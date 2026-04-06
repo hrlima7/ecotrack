@@ -159,7 +159,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: false,
       isLoading: false,
     });
-  }, [state.accessToken]);
+
+    router.push(ROUTES.LOGIN);
+  }, [state.accessToken, router]);
 
   const refreshSession = useCallback(async () => {
     const refreshToken = getCookie("refresh_token");
