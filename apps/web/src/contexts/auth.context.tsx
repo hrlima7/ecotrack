@@ -76,6 +76,7 @@ function deleteCookie(name: string) {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [state, setState] = useState<AuthState>({
     user: null,
     accessToken: null,
