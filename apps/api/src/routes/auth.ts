@@ -69,13 +69,13 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       const accessToken = fastify.jwt.sign({
         sub: usuario.id,
         empresaId: usuario.empresaId,
-        role: usuario.role,
+        role: usuario.role as RoleUsuario,
         email: usuario.email,
       });
 
       // 4. Gerar refresh token e salvar no banco
       const refreshToken = fastify.jwt.sign(
-        { sub: usuario.id, type: "refresh" },
+        { sub: usuario.id, empresaId: usuario.empresaId, role: usuario.role as RoleUsuario, email: usuario.email, type: "refresh" as const },
         { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" }
       );
 
