@@ -208,6 +208,76 @@
            disabled:opacity-50 disabled:cursor-not-allowed
            transition-colors duration-150 text-sm;
   }
+
+  /* ─── Auth Layout ──────────────────────────────────────────────────────── */
+
+  /*
+   * Painel esquerdo do layout split de autenticação.
+   * Fundo verde escuro (#166534 = primary-800) com gradiente sutil para
+   * primary-900, garantindo profundidade sem sair da paleta EcoTrack.
+   * Ocupa a metade esquerda em desktop; oculto em mobile (o formulário
+   * ocupa a tela inteira no mobile-first).
+   */
+  .auth-split-left {
+    @apply hidden lg:flex lg:flex-col lg:justify-between
+           relative overflow-hidden
+           bg-primary-800
+           p-10 xl:p-14;
+    background-image: linear-gradient(
+      160deg,
+      #166534 0%,   /* primary-800 */
+      #14532d 100%  /* primary-900 */
+    );
+  }
+
+  /*
+   * Painel direito do layout split — área de formulário.
+   * Fundo levemente acinzentado (#F8FAFC = background) para separar
+   * visualmente do card branco interno sem criar contraste abrupto.
+   * Em mobile ocupa 100vw; em desktop ocupa metade da tela.
+   */
+  .auth-split-right {
+    @apply flex flex-col items-center justify-center
+           min-h-screen w-full
+           bg-background
+           px-4 py-10
+           lg:min-h-0 lg:flex-1 lg:py-12;
+  }
+
+  /*
+   * Card central do formulário de autenticação.
+   * Largura máxima de 440px para não esticar o formulário em telas largas.
+   * Sombra suave (shadow-card) para elevar sem exagero.
+   * Sem border em mobile para parecer parte do fundo; borda sutil em sm+.
+   */
+  .auth-card {
+    @apply w-full max-w-[440px]
+           bg-card
+           rounded-lg
+           p-6 sm:p-8
+           shadow-card
+           border border-transparent sm:border-border;
+  }
+
+  /*
+   * Container do logo no topo do card ou do painel esquerdo.
+   * Centralizado horizontalmente; gap entre ícone e wordmark fixado em 8px.
+   */
+  .auth-logo {
+    @apply flex items-center gap-2
+           mb-6;
+  }
+
+  /*
+   * Item de bullet point no painel esquerdo verde.
+   * Ícone de check circular + texto descritivo de proposta de valor.
+   * Texto em branco semi-opaco para não competir com o título principal.
+   */
+  .auth-bullet {
+    @apply flex items-start gap-3
+           text-sm text-white/80
+           leading-relaxed;
+  }
 }
 
 /* ─── Utilitários Customizados ───────────────────────────────────────────── */
