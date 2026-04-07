@@ -868,7 +868,7 @@ function BarraProgresso({ etapaAtual }: BarraProgressoProps) {
 
 export function CadastroWizard() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { loginComTokens } = useAuth();
   const [etapaAtual, setEtapaAtual] = useState(0);
   const [dadosEmpresa, setDadosEmpresa] = useState<EmpresaValues | null>(null);
   const [dadosEndereco, setDadosEndereco] = useState<EnderecoValues | null>(null);
