@@ -105,7 +105,7 @@ function MetricaCard({
 
 // ─── Tabela de histórico ──────────────────────────────────────────────────────
 
-function TabelaHistorico({ coletas }: { coletas: ReturnType<typeof useColetas>["query"]["data"] extends { data: infer T } ? T : never[] }) {
+function TabelaHistorico({ coletas }: { coletas: Coleta[] }) {
   if (coletas.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-8">
