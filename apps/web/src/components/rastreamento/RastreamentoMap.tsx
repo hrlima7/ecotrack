@@ -149,10 +149,10 @@ export function RastreamentoMap() {
       coletasAtivas.forEach((coleta) => {
         const cfg = STATUS_CONFIG[coleta.status] ?? STATUS_CONFIG.PENDENTE;
 
-        // Coordenadas: usa lat/lng do banco se disponíveis, senão distribui em torno de SP
+        // Distribui marcadores em torno de SP até coordenadas reais serem salvas (Fase 2)
         const hash = coleta.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-        const lat = coleta.latitude ?? (-23.5505 + ((hash % 100) - 50) * 0.003);
-        const lng = coleta.longitude ?? (-46.6333 + ((hash % 70) - 35) * 0.004);
+        const lat = -23.5505 + ((hash % 100) - 50) * 0.003;
+        const lng = -46.6333 + ((hash % 70) - 35) * 0.004;
 
         // Ícone SVG colorido por status
         const icon = L.divIcon({
