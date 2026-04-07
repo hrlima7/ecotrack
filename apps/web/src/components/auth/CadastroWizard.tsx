@@ -16,6 +16,7 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@ecotrack/shared";
 import { useAuth } from "@/contexts/auth.context";
+import Cookies from "js-cookie";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
