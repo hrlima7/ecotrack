@@ -921,15 +921,16 @@ export function CadastroWizard() {
       const json = await res.json();
 
       if (!res.ok) {
-        setErroCadastro(
-          json?.error?.message ?? LABELS.ERRO_CADASTRO
-        );
+        setErroCadastro(json?.error?.message ?? LABELS.ERRO_CADASTRO);
         return;
       }
 
+      // Usar o login do AuthContext para salvar tokens e redirecionar
+      // A API de cadastro retorna tokens — fazemos login direto com as credenciais
+      await login(payload.emailAdmin, payload.senhaAdmin);
       router.push(ROUTES.DASHBOARD);
-    } catch {
-      setErroCadastro(LABELS.ERRO_CADASTRO);
+    } catch (err) {
+      setErroCadastro(err instanceof Error ? err.message : LABELS.ERRO_CADASTRO);
     }
   }
 
