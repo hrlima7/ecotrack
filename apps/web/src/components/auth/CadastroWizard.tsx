@@ -910,7 +910,7 @@ export function CadastroWizard() {
     };
 
     try {
-      const res = await fetch(`${API_PREFIX}/auth/cadastro`, {
+      const res = await fetch(`${API_BASE}/api/v1/auth/cadastro`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
