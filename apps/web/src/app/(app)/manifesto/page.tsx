@@ -151,7 +151,7 @@ function EmitirMtrModal({
             disabled={!coletaId || isPending}
             className="flex-1 btn-primary flex items-center justify-center gap-2"
           >
-            {isPending && <Spinner className="w-4 h-4" />}
+            {isPending && <Spinner size="sm" className="text-white" />}
             Emitir MTR
           </button>
         </div>
