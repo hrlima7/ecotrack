@@ -239,13 +239,23 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
           empresa: {
             id: empresa.id,
             razaoSocial: empresa.razaoSocial,
+            nomeFantasia: empresa.nomeFantasia ?? null,
             tipo: empresa.tipo,
+            plano: empresa.plano,
           },
+          // usuario com empresa aninhada — mesmo formato do /login e /auth/me
           usuario: {
             id: usuario.id,
             nome: usuario.nome,
             email: usuario.email,
             role: usuario.role,
+            empresa: {
+              id: empresa.id,
+              razaoSocial: empresa.razaoSocial,
+              nomeFantasia: empresa.nomeFantasia ?? null,
+              tipo: empresa.tipo,
+              plano: empresa.plano,
+            },
           },
         },
       });
