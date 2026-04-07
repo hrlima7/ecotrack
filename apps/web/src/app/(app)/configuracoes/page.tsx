@@ -88,15 +88,17 @@ function InfoRow({ label, valor }: InfoRowProps) {
 }
 
 export default function ConfiguracoesPage() {
-  const { usuario, empresa } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (!usuario || !empresa) {
+  if (isLoading || !user) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  const empresa = user.empresa;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -115,9 +117,9 @@ export default function ConfiguracoesPage() {
           {LABELS.SECAO_USUARIO}
         </h2>
         <div>
-          <InfoRow label={LABELS.CAMPO_NOME} valor={usuario.nome} />
-          <InfoRow label={LABELS.CAMPO_EMAIL} valor={usuario.email} />
-          <InfoRow label={LABELS.CAMPO_PERFIL} valor={roleLabel(usuario.role)} />
+          <InfoRow label={LABELS.CAMPO_NOME} valor={user.nome} />
+          <InfoRow label={LABELS.CAMPO_EMAIL} valor={user.email} />
+          <InfoRow label={LABELS.CAMPO_PERFIL} valor={roleLabel(user.role)} />
         </div>
       </section>
 
