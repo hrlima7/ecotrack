@@ -14,7 +14,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { ROUTES, API_PREFIX } from "@ecotrack/shared";
+import { ROUTES } from "@ecotrack/shared";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // ─── Constantes de texto ───────────────────────────────────────────────────
 
