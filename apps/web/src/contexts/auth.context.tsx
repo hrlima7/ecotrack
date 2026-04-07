@@ -205,8 +205,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshSession();
   }, [refreshSession]);
 
+  // Usado após cadastro: recebe tokens já prontos da API sem fazer novo request
+  const loginComTokens = useCallback((accessToken: string, refreshToken: string, usuario: AuthUser) => {
+    persistTokens(accessToken, refreshToken);
+    setState({ user: usuario, accessToken, isAuthenticated: true, isLoading: false });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, refreshSession }}>
+    <AuthContext.Provider value={{ ...state, login, loginComTokens, logout, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
