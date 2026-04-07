@@ -899,7 +899,7 @@ export function CadastroWizard() {
       cnpj: dadosEmpresa.cnpj,
       razaoSocial: dadosEmpresa.razaoSocial,
       email: dadosEmpresa.emailEmpresa,
-      telefone: dadosEmpresa.telefone,
+      ...(dadosEmpresa.telefone ? { telefone: dadosEmpresa.telefone } : {}),
       tipo: dadosEmpresa.tipo,
       logradouro: dadosEndereco.logradouro,
       numero: dadosEndereco.numero,
