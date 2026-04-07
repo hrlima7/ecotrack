@@ -115,8 +115,11 @@ export function RastreamentoMap() {
       return;
     }
 
+    let mapInstance: { remove: () => void } | null = null;
+    let cancelado = false;
+
     import("mapbox-gl").then(({ default: mapboxgl }) => {
-      if (!containerRef.current || mapRef.current) return;
+      if (cancelado || !containerRef.current || mapRef.current) return;
 
       mapboxgl.accessToken = token;
 
@@ -128,25 +131,34 @@ export function RastreamentoMap() {
         attributionControl: false,
       });
 
+      mapInstance = map;
+
       map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
       map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
       map.on("load", () => {
+        if (cancelado) return;
         setIsLoading(false);
         setMapReady(true);
         mapRef.current = map;
       });
 
       map.on("error", () => {
+        if (cancelado) return;
         setError(LABELS.ERRO_MAPA);
         setIsLoading(false);
       });
-
-      return () => {
-        map.remove();
-        mapRef.current = null;
-      };
     });
+
+    // Cleanup correto: executado pelo React no desmonte do componente
+    return () => {
+      cancelado = true;
+      if (mapInstance) {
+        mapInstance.remove();
+        mapInstance = null;
+      }
+      mapRef.current = null;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
