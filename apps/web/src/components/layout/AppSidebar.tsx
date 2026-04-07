@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: ROUTES.RASTREAMENTO, label: "Rastreamento", icone: "🗺️" },
   { href: ROUTES.MANIFESTO, label: "Manifestos MTR", icone: "📋" },
   { href: ROUTES.RELATORIOS, label: "Relatorios", icone: "📈" },
+  { href: ROUTES.MARKETPLACE, label: "Marketplace", icone: "🏪" },
 ] as const;
 
 const LABELS = {
