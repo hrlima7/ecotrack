@@ -925,9 +925,9 @@ export function CadastroWizard() {
         return;
       }
 
-      // Usar o login do AuthContext para salvar tokens e redirecionar
-      // A API de cadastro retorna tokens — fazemos login direto com as credenciais
-      await login(payload.emailAdmin, payload.senhaAdmin);
+      // Usar tokens retornados diretamente pelo /cadastro — sem 2ª requisição
+      const { accessToken, refreshToken, usuario } = json.data;
+      loginComTokens(accessToken, refreshToken, usuario);
       router.push(ROUTES.DASHBOARD);
     } catch (err) {
       setErroCadastro(err instanceof Error ? err.message : LABELS.ERRO_CADASTRO);
