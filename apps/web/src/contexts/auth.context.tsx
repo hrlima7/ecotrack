@@ -50,6 +50,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (email: string, senha: string) => Promise<void>;
+  loginComTokens: (accessToken: string, refreshToken: string, usuario: AuthUser) => void;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
