@@ -885,20 +885,26 @@ export function CadastroWizard() {
 
     setErroCadastro(null);
 
+    // A API espera payload flat (cadastroEmpresaSchema):
+    // campos da empresa: cnpj, razaoSocial, email, telefone, tipo
+    // campos de endereco: logradouro, numero, complemento, bairro, cidade, estado, cep
+    // campos do admin: nomeAdmin, emailAdmin, senhaAdmin
     const payload = {
-      empresa: {
-        cnpj: dadosEmpresa.cnpj,
-        razaoSocial: dadosEmpresa.razaoSocial,
-        emailEmpresa: dadosEmpresa.emailEmpresa,
-        telefone: dadosEmpresa.telefone,
-        tipo: dadosEmpresa.tipo,
-      },
-      endereco: dadosEndereco,
-      admin: {
-        nome: dadosAdmin.nomeAdmin,
-        email: dadosAdmin.emailAdmin,
-        senha: dadosAdmin.senhaAdmin,
-      },
+      cnpj: dadosEmpresa.cnpj,
+      razaoSocial: dadosEmpresa.razaoSocial,
+      email: dadosEmpresa.emailEmpresa,
+      telefone: dadosEmpresa.telefone,
+      tipo: dadosEmpresa.tipo,
+      logradouro: dadosEndereco.logradouro,
+      numero: dadosEndereco.numero,
+      complemento: dadosEndereco.complemento,
+      bairro: dadosEndereco.bairro,
+      cidade: dadosEndereco.cidade,
+      estado: dadosEndereco.estado,
+      cep: dadosEndereco.cep,
+      nomeAdmin: dadosAdmin.nomeAdmin,
+      emailAdmin: dadosAdmin.emailAdmin,
+      senhaAdmin: dadosAdmin.senhaAdmin,
     };
 
     try {
