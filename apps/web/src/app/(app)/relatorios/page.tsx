@@ -7,7 +7,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useColetas } from "@/hooks/useColetas";
+import { useColetas, type Coleta } from "@/hooks/useColetas";
 import { useMtr } from "@/hooks/useMtr";
 import { StatusColeta } from "@ecotrack/shared";
 
