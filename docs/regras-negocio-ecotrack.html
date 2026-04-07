@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoTrack — Regras de Negócio e Funcionamento</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --primary: #16A34A;
+    --primary-light: #DCFCE7;
+    --primary-dark: #14532D;
+    --secondary: #0EA5E9;
+    --accent: #F59E0B;
+    --danger: #EF4444;
+    --gray-50: #F9FAFB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-400: #9CA3AF;
+    --gray-600: #4B5563;
+    --gray-700: #374151;
+    --gray-900: #111827;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 10pt;
+    line-height: 1.6;
+    color: var(--gray-900);
+    background: white;
+  }
+
+  /* ── CAPA ── */
+  .capa {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #14532D 0%, #16A34A 50%, #22C55E 100%);
+    color: white;
+    text-align: center;
+    padding: 60px;
+    page-break-after: always;
+  }
+
+  .capa-logo {
+    width: 80px; height: 80px;
+    background: white;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; margin-bottom: 32px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .capa h1 { font-size: 42pt; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .capa .subtitulo { font-size: 16pt; font-weight: 300; opacity: 0.85; margin-bottom: 48px; }
+  .capa .titulo-doc { font-size: 14pt; font-weight: 600; background: rgba(255,255,255,0.15); padding: 12px 32px; border-radius: 100px; margin-bottom: 12px; }
+  .capa .meta { font-size: 10pt; opacity: 0.7; }
+
+  /* ── LAYOUT GERAL ── */
+  .pagina {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 56px;
+  }
+
+  @media print {
+    .pagina { padding: 20px 28px; max-width: 100%; }
+    .capa { height: auto; min-height: 100vh; }
+  }
+
+  /* ── SUMÁRIO ── */
+  .sumario {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 48px;
+    page-break-after: always;
+  }
+
+  .sumario h2 { font-size: 14pt; font-weight: 700; color: var(--primary-dark); margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 8px; }
+
+  .sumario ol { list-style: none; counter-reset: sumario; }
+  .sumario ol li { counter-increment: sumario; display: flex; align-items: baseline; gap: 12px; padding: 6px 0; border-bottom: 1px dotted var(--gray-200); }
+  .sumario ol li::before { content: counter(sumario); font-weight: 700; color: var(--primary); font-size: 9pt; min-width: 20px; }
+  .sumario ol li a { color: var(--gray-700); text-decoration: none; font-size: 10pt; flex: 1; }
+  .sumario ol li .pg { color: var(--gray-400); font-size: 9pt; }
+
+  /* ── SEÇÕES ── */
+  .secao { margin-bottom: 48px; }
+  .secao-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    border-radius: 10px;
+    margin-bottom: 28px;
+    page-break-after: avoid;
+  }
+  .secao-header .num {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 13pt;
+    font-weight: 800;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .secao-header h2 { color: white; font-size: 14pt; font-weight: 700; }
+
+  .subsecao { margin-bottom: 28px; }
+  .subsecao h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--primary-light);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .subsecao h3 .badge {
+    background: var(--primary);
+    color: white;
+    font-size: 8pt;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  /* ── REGRAS ── */
+  .regras { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .regra {
+    display: flex;
+    gap: 12px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-left: 3px solid var(--primary);
+    border-radius: 6px;
+    padding: 10px 14px;
+    page-break-inside: avoid;
+  }
+  .regra .codigo {
+    font-size: 8pt;
+    font-weight: 700;
+    color: var(--primary);
+    white-space: nowrap;
+    min-width: 68px;
+    font-family: monospace;
+  }
+  .regra .texto { font-size: 9.5pt; color: var(--gray-700); line-height: 1.5; }
+
+  .regra.obrigatorio { border-left-color: var(--primary); }
+  .regra.alerta     { border-left-color: var(--accent); background: #FFFBEB; }
+  .regra.critico    { border-left-color: var(--danger); background: #FEF2F2; }
+  .regra.lgpd       { border-left-color: var(--secondary); background: #F0F9FF; }
+
+  /* ── TABELAS ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 9.5pt;
+  }
+  th {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 9pt;
+  }
+  th:first-child { border-radius: 6px 0 0 0; }
+  th:last-child  { border-radius: 0 6px 0 0; }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--gray-200);
+    vertical-align: top;
+    color: var(--gray-700);
+  }
+  tr:nth-child(even) td { background: var(--gray-50); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--primary-light); }
+
+  /* ── MÁQUINA DE ESTADOS ── */
+  .estado-flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 16px 0;
+    padding: 20px;
+    background: var(--gray-50);
+    border-radius: 10px;
+    border: 1px solid var(--gray-200);
+  }
+  .estado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .estado .nome {
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 9pt;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .estado .desc {
+    font-size: 8pt;
+    color: var(--gray-400);
+    text-align: center;
+    max-width: 80px;
+  }
+  .seta {
+    font-size: 18pt;
+    color: var(--gray-400);
+    padding: 0 4px;
+    margin-top: -8px;
+  }
+  .seta-final {
+    font-size: 14pt;
+    color: var(--danger);
+    padding: 0 4px;
+    margin-top: -8px;
+  }
+
+  /* ── CALLS DE ATENÇÃO ── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 9.5pt;
+  }
+  .callout.info    { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; }
+  .callout.success { background: var(--primary-light); border: 1px solid #86EFAC; color: var(--primary-dark); }
+  .callout.warning { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; }
+  .callout.danger  { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+  .callout .icon { font-size: 16pt; flex-shrink: 0; }
+  .callout strong { display: block; font-weight: 700; margin-bottom: 4px; }
+
+  /* ── API ENDPOINTS ── */
+  .endpoints { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+  .endpoint {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--gray-900);
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 9pt;
+  }
+  .method { font-weight: 700; min-width: 48px; }
+  .method.get    { color: #34D399; }
+  .method.post   { color: #60A5FA; }
+  .method.patch  { color: #FBBF24; }
+  .method.delete { color: #F87171; }
+  .path  { color: #E5E7EB; flex: 1; }
+  .desc  { color: #9CA3AF; font-size: 8pt; font-family: 'Inter', sans-serif; }
+
+  /* ── PLANOS ── */
+  .planos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .plano {
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .plano.destaque { border-color: var(--primary); background: var(--primary-light); }
+  .plano .nome-plano { font-size: 10pt; font-weight: 700; margin-bottom: 8px; color: var(--gray-900); }
+  .plano .preco { font-size: 13pt; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
+  .plano ul { list-style: none; text-align: left; }
+  .plano ul li { font-size: 8.5pt; color: var(--gray-600); padding: 2px 0; }
+  .plano ul li::before { content: "✓ "; color: var(--primary); font-weight: 700; }
+
+  /* ── RODAPÉ ── */
+  .rodape {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 2px solid var(--gray-200);
+    text-align: center;
+    font-size: 8.5pt;
+    color: var(--gray-400);
+  }
+
+  /* ── PAGE BREAKS ── */
+  @media print {
+    .page-break { page-break-before: always; }
+    .no-break { page-break-inside: avoid; }
+    .secao-header { page-break-after: avoid; }
+  }
+
+  .page-break { page-break-before: always; }
+  .spacer { height: 24px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     CAPA
+══════════════════════════════════════════════════════════════════════════ -->
+<div class="capa">
+  <div class="capa-logo">♻️</div>
+  <h1>EcoTrack</h1>
+  <p class="subtitulo">Plataforma SaaS de Gestão de Resíduos</p>
+  <div class="titulo-doc">Regras de Negócio &amp; Documentação Técnica</div>
+  <p class="meta">Versão 1.0 · Abril 2026 · Confidencial</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SUMÁRIO
+══════════════════════════════════════════════════════════════════════════ -->
+<div class="pagina">
+  <div class="sumario">
+    <h2>📋 Sumário</h2>
+    <ol>
+      <li><a href="#sec1">Visão Geral do Sistema</a><span class="pg">p.3</span></li>
+      <li><a href="#sec2">Perfis de Usuário e Roles</a><span class="pg">p.3</span></li>
+      <li><a href="#sec3">Máquina de Estados — Coleta</a><span class="pg">p.4</span></li>
+      <li><a href="#sec4">Máquina de Estados — MTR</a><span class="pg">p.4</span></li>
+      <li><a href="#sec5">Regras de Negócio — Autenticação</a><span class="pg">p.5</span></li>
+      <li><a href="#sec6">Regras de Negócio — Coletas</a><span class="pg">p.6</span></li>
+      <li><a href="#sec7">Regras de Negócio — Inventário de Resíduos</a><span class="pg">p.7</span></li>
+      <li><a href="#sec8">Regras de Negócio — MTR (Manifesto)</a><span class="pg">p.8</span></li>
+      <li><a href="#sec9">Regras de Negócio — Gestão de Empresa</a><span class="pg">p.9</span></li>
+      <li><a href="#sec10">Conformidade Legal (LGPD / CONAMA / SINIR)</a><span class="pg">p.10</span></li>
+      <li><a href="#sec11">Multi-tenancy e Segurança</a><span class="pg">p.11</span></li>
+      <li><a href="#sec12">API REST — Endpoints</a><span class="pg">p.12</span></li>
+      <li><a href="#sec13">Planos SaaS</a><span class="pg">p.13</span></li>
+      <li><a href="#sec14">Roadmap de Fases</a><span class="pg">p.14</span></li>
+      <li><a href="#sec15">Modelo de Dados</a><span class="pg">p.15</span></li>
+    </ol>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 1 — VISÃO GERAL
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao" id="sec1">
+    <div class="secao-header">
+      <div class="num">1</div>
+      <h2>Visão Geral do Sistema</h2>
+    </div>
+
+    <p style="margin-bottom:16px;color:var(--gray-700);font-size:10pt;">
+      O <strong>EcoTrack</strong> é uma plataforma SaaS B2B voltada para restaurantes, clínicas e pequenas indústrias que precisam gerir
+      o descarte de resíduos em conformidade com a <strong>Política Nacional de Resíduos Sólidos (PNRS — Lei 12.305/2010)</strong> e a
+      <strong>Resolução CONAMA 275/2001</strong>. A plataforma conecta três pilares da cadeia de resíduos:
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Perfil</th>
+          <th>Papel no Sistema</th>
+          <th>Principais Necessidades</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Gerador</strong><br><small>Restaurantes, Clínicas</small></td>
+          <td>Origem do resíduo — solicita coletas e emite MTR</td>
+          <td>Conformidade legal, relatórios de sustentabilidade, facilidade no descarte</td>
+        </tr>
+        <tr>
+          <td><strong>Transportador</strong><br><small>Coletores certificados</small></td>
+          <td>Logística de coleta — aceita rotas e assina MTR</td>
+          <td>Otimização de rotas, gestão de frota, documentação digital</td>
+        </tr>
+        <tr>
+          <td><strong>Destinador</strong><br><small>Aterros, Recicladoras</small></td>
+          <td>Recebimento final — confirma e emite CDF</td>
+          <td>Controle de entrada, emissão de Certificado de Destinação Final</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout success">
+      <span class="icon">🎯</span>
+      <div>
+        <strong>Proposta de Valor</strong>
+        Automatizar 100% do ciclo documental de resíduos (MTR + CDF) eliminando papel,
+        reduzindo risco de autuação ambiental e provendo evidências para ESG corporativo.
+      </div>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 2 — PERFIS E ROLES
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao" id="sec2">
+    <div class="secao-header">
+      <div class="num">2</div>
+      <h2>Perfis de Usuário e Roles</h2>
+    </div>
+
+    <p style="margin-bottom:16px;color:var(--gray-700);">
+      Cada empresa cadastrada na plataforma possui usuários com <strong>roles</strong> que determinam o nível de acesso:
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>Role</th><th>Permissões</th><th>Restrições</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>ADMIN</strong></td>
+          <td>Acesso total: gerenciar empresa, usuários, plano, exclusão de conta (LGPD)</td>
+          <td>Não pode rebaixar a própria role; não pode desativar a si mesmo</td>
+        </tr>
+        <tr>
+          <td><strong>OPERADOR</strong></td>
+          <td>Agendar coletas, emitir MTR, visualizar relatórios e inventário</td>
+          <td>Não pode gerenciar usuários nem alterar dados da empresa</td>
+        </tr>
+        <tr>
+          <td><strong>MOTORISTA</strong></td>
+          <td>Visualizar rotas atribuídas, atualizar status da coleta para EM_ROTA e COLETADO</td>
+          <td>Não pode criar coletas, acessar relatórios ou configurações</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ul class="regras">
+      <li class="regra alerta">
+        <span class="codigo">RN-USR-01</span>
+        <span class="texto">Um ADMIN não pode alterar sua própria role para OPERADOR ou MOTORISTA, evitando que a empresa fique sem administrador.</span>
+      </li>
+      <li class="regra alerta">
+        <span class="codigo">RN-USR-02</span>
+        <span class="texto">Um ADMIN não pode desativar seu próprio usuário via endpoint DELETE /me/usuarios/:id.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-USR-03</span>
+        <span class="texto">Ao desativar um usuário, todos os seus refresh tokens são revogados imediatamente (cascade no banco).</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-USR-04</span>
+        <span class="texto">Email de usuário deve ser único em toda a plataforma (não apenas dentro da empresa).</span>
+      </li>
+    </ul>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 3 — MÁQUINA DE ESTADOS COLETA
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao page-break" id="sec3">
+    <div class="secao-header">
+      <div class="num">3</div>
+      <h2>Máquina de Estados — Coleta</h2>
+    </div>
+
+    <div class="estado-flow">
+      <div class="estado">
+        <div class="nome" style="background:#F3F4F6;color:#6B7280;">PENDENTE</div>
+        <div class="desc">Criada, aguardando confirmação</div>
+      </div>
+      <div class="seta">→</div>
+      <div class="estado">
+        <div class="nome" style="background:#EFF6FF;color:#1D4ED8;">CONFIRMADA</div>
+        <div class="desc">Transportador aceito</div>
+      </div>
+      <div class="seta">→</div>
+      <div class="estado">
+        <div class="nome" style="background:#FFF7ED;color:#C2410C;">EM_ROTA</div>
+        <div class="desc">Motorista a caminho</div>
+      </div>
+      <div class="seta">→</div>
+      <div class="estado">
+        <div class="nome" style="background:#F0FDF4;color:#15803D;">COLETADO</div>
+        <div class="desc">Resíduo retirado, peso registrado</div>
+      </div>
+      <div class="seta">→</div>
+      <div class="estado">
+        <div class="nome" style="background:#16A34A;color:white;">FINALIZADO</div>
+        <div class="desc">MTR baixado no SINIR</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:9pt;color:var(--danger);margin-top:4px;">
+      ↓ CANCELADO disponível a partir de PENDENTE ou CONFIRMADA (até 24h antes)
+    </div>
+
+    <div class="spacer"></div>
+
+    <table>
+      <thead>
+        <tr><th>Status Atual</th><th>Transições Permitidas</th><th>Quem pode executar</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>PENDENTE</td><td>CONFIRMADA, CANCELADO</td><td>ADMIN / OPERADOR</td></tr>
+        <tr><td>CONFIRMADA</td><td>EM_ROTA, CANCELADO</td><td>ADMIN / OPERADOR / MOTORISTA</td></tr>
+        <tr><td>EM_ROTA</td><td>COLETADO</td><td>MOTORISTA</td></tr>
+        <tr><td>COLETADO</td><td>FINALIZADO</td><td>ADMIN / OPERADOR</td></tr>
+        <tr><td>FINALIZADO</td><td><em>nenhuma</em></td><td>—</td></tr>
+        <tr><td>CANCELADO</td><td><em>nenhuma</em></td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <ul class="regras" style="margin-top:14px;">
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-COL-01</span>
+        <span class="texto">Toda transição de status é validada contra a máquina de estados. Tentativas de transição inválida retornam HTTP 422 com código TRANSICAO_INVALIDA.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-COL-02</span>
+        <span class="texto">Cada transição de status gera um registro em <code>ColetaStatusHistorico</code> com status anterior, status posterior, motivo e timestamp.</span>
+      </li>
+      <li class="regra alerta">
+        <span class="codigo">RN-COL-03</span>
+        <span class="texto">Cancelamento só é permitido se a coleta estiver em PENDENTE ou CONFIRMADA. Coletas COLETADO, FINALIZADO ou já CANCELADO não podem ser canceladas.</span>
+      </li>
+      <li class="regra alerta">
+        <span class="codigo">RN-COL-04</span>
+        <span class="texto">Cancelamento exige prazo mínimo de <strong>24 horas</strong> antes da data/hora agendada. Fora do prazo, retorna HTTP 422 com código PRAZO_CANCELAMENTO_EXPIRADO.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-COL-05</span>
+        <span class="texto">Ao cancelar uma coleta, o ManifestoMTR vinculado (se em RASCUNHO ou EMITIDO) é automaticamente cancelado junto na mesma transação.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-COL-06</span>
+        <span class="texto">Ao atualizar para COLETADO, os campos <code>dataRealizada</code> e <code>pesoRealKg</code> (opcional) são registrados.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-COL-07</span>
+        <span class="texto">Ao finalizar a coleta (FINALIZADO), o MTR vinculado com status ACEITO é automaticamente finalizado na mesma transação.</span>
+      </li>
+    </ul>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 4 — MÁQUINA DE ESTADOS MTR
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao" id="sec4">
+    <div class="secao-header">
+      <div class="num">4</div>
+      <h2>Máquina de Estados — MTR (Manifesto)</h2>
+    </div>
+
+    <div class="estado-flow">
+      <div class="estado">
+        <div class="nome" style="background:#F3F4F6;color:#6B7280;">RASCUNHO</div>
+        <div class="desc">Criado automaticamente com a coleta</div>
+      </div>
+      <div class="seta">→</div>
+      <div class="estado">
+        <div class="nome" style="background:#EFF6FF;color:#1D4ED8;">EMITIDO</div>
+        <div class="desc">Número MTR gerado</div>
+      </div>
+      <div class="seta">→</div>
+      <div class="estado">
+        <div class="nome" style="background:#FFF7ED;color:#C2410C;">ACEITO</div>
+        <div class="desc">Primeira assinatura registrada</div>
+      </div>
+      <div class="seta">→</div>
+      <div class="estado">
+        <div class="nome" style="background:#16A34A;color:white;">FINALIZADO</div>
+        <div class="desc">Todas as 3 assinaturas</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <ul class="regras">
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-01</span>
+        <span class="texto">Todo agendamento de coleta cria automaticamente um ManifestoMTR com status RASCUNHO vinculado à coleta (relação 1:1 via <code>coletaId</code>).</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-02</span>
+        <span class="texto">Um MTR só pode ser emitido (RASCUNHO → EMITIDO) se a coleta estiver nos status PENDENTE, CONFIRMADA ou EM_ROTA.</span>
+      </li>
+      <li class="regra alerta">
+        <span class="codigo">RN-MTR-03</span>
+        <span class="texto">Não é possível emitir um novo MTR se a coleta já possui um MTR com status diferente de RASCUNHO (evita duplicatas).</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-04</span>
+        <span class="texto"><strong>Fase 1:</strong> número MTR gerado localmente no formato <code>MTR-{ANO}-{6 últimos chars do coletaId}</code>. <strong>Fase 2:</strong> número oficial via API SINIR.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-05</span>
+        <span class="texto">O MTR aceita 3 assinaturas digitais independentes: GERADOR, TRANSPORTADOR e DESTINADOR. Cada assinatura é armazenada em campo separado.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-06</span>
+        <span class="texto">Quando as 3 assinaturas estiverem presentes, o status é automaticamente atualizado para FINALIZADO e o campo <code>finalizadoEm</code> é preenchido.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-07</span>
+        <span class="texto">O endpoint GET /:id/pdf retorna dados estruturados conforme CONAMA 275/2001 para geração de PDF pelo frontend, incluindo metadado de conformidade.</span>
+      </li>
+    </ul>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 5 — AUTENTICAÇÃO
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao page-break" id="sec5">
+    <div class="secao-header">
+      <div class="num">5</div>
+      <h2>Regras de Negócio — Autenticação</h2>
+    </div>
+
+    <div class="subsecao">
+      <h3>5.1 Tokens JWT</h3>
+      <ul class="regras">
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-AUTH-01</span>
+          <span class="texto">Access token JWT válido por <strong>1 hora</strong>. Payload contém: <code>sub</code> (usuarioId), <code>empresaId</code>, <code>role</code>, <code>exp</code>.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-AUTH-02</span>
+          <span class="texto">Refresh token opaco de <strong>7 dias</strong> armazenado no banco de dados (tabela <code>refresh_tokens</code>). Um por sessão ativa por usuário.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-AUTH-03</span>
+          <span class="texto"><strong>Rotação de refresh token:</strong> a cada uso do <code>/auth/refresh</code>, o token antigo é revogado e um novo é emitido. Reutilização de token revogado é recusada com HTTP 401.</span>
+        </li>
+        <li class="regra critico">
+          <span class="codigo">RN-AUTH-04</span>
+          <span class="texto">Senhas armazenadas com bcrypt (custo 12). Nunca armazenadas em texto puro.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-AUTH-05</span>
+          <span class="texto">Login retorna HTTP 401 com mensagem genérica ("Credenciais inválidas") tanto para email inexistente quanto para senha errada — não revela qual campo está incorreto.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-AUTH-06</span>
+          <span class="texto">Logout requer envio do <code>refreshToken</code> no body para revogação imediata no banco. Access token expira naturalmente.</span>
+        </li>
+        <li class="regra alerta">
+          <span class="codigo">RN-AUTH-07</span>
+          <span class="texto">Usuários com <code>ativo: false</code> não conseguem fazer login — retorna HTTP 401 com código USER_INATIVO.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="subsecao">
+      <h3>5.2 Cadastro de Empresa</h3>
+      <ul class="regras">
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-CAD-01</span>
+          <span class="texto">CNPJ deve ser único na plataforma. Tentativa de cadastro com CNPJ já existente retorna HTTP 409 com código CNPJ_JA_CADASTRADO.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-CAD-02</span>
+          <span class="texto">Email do usuário admin deve ser único em toda a plataforma. Retorna HTTP 409 com código EMAIL_JA_CADASTRADO.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-CAD-03</span>
+          <span class="texto">Cadastro cria atomicamente: Empresa + Usuário ADMIN + RefreshToken em uma única transação Prisma. Em caso de falha, nada é persistido.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-CAD-04</span>
+          <span class="texto">Novo cadastro retorna automaticamente access e refresh tokens — o usuário já fica logado ao se cadastrar (sem etapa adicional de login).</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 6 — COLETAS
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao" id="sec6">
+    <div class="secao-header">
+      <div class="num">6</div>
+      <h2>Regras de Negócio — Coletas</h2>
+    </div>
+
+    <div class="subsecao">
+      <h3>6.1 Criação de Coleta</h3>
+      <ul class="regras">
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-COL-08</span>
+          <span class="texto">Todos os resíduos informados na criação devem pertencer ao inventário ativo da empresa geradora. Resíduo não cadastrado no inventário retorna HTTP 400 com código RESIDUO_NAO_ENCONTRADO.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-COL-09</span>
+          <span class="texto">O endereço de coleta é opcional. Se não informado, o sistema usa o endereço cadastrado na empresa. O endereço é copiado (snapshot) no momento do agendamento — alterações posteriores na empresa não afetam coletas existentes.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-COL-10</span>
+          <span class="texto">A criação da coleta gera atomicamente: registro Coleta + ColetaResiduo[] + ManifestoMTR (RASCUNHO) + ColetaStatusHistorico (entrada inicial). Falha em qualquer etapa reverte toda a transação.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-COL-11</span>
+          <span class="texto">Data/hora de agendamento deve estar no futuro e no formato ISO 8601. Coletas no passado são rejeitadas na validação de schema.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="subsecao">
+      <h3>6.2 Listagem e Paginação</h3>
+      <ul class="regras">
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-COL-12</span>
+          <span class="texto">Listagem aceita filtros: <code>status</code>, <code>dataInicio</code>, <code>dataFim</code>. Paginação padrão: page=1, limit=20. Limite máximo: 100 itens por página.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-COL-13</span>
+          <span class="texto">Toda listagem retorna <code>meta</code> com: <code>page</code>, <code>limit</code>, <code>total</code>, <code>totalPages</code>.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 7 — INVENTÁRIO DE RESÍDUOS
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao page-break" id="sec7">
+    <div class="secao-header">
+      <div class="num">7</div>
+      <h2>Regras de Negócio — Inventário de Resíduos</h2>
+    </div>
+
+    <ul class="regras">
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-INV-01</span>
+        <span class="texto">O catálogo de resíduos é público (sem autenticação). Baseado na classificação ABNT NBR 10.004 e lista IBAMA. Campos: tipo, descrição, código IBAMA, classe ABNT, periculosidade.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-INV-02</span>
+        <span class="texto">Cada empresa possui seu próprio inventário (vínculo InventarioResiduo). Um mesmo resíduo não pode ser adicionado duas vezes ao inventário da mesma empresa (unique constraint <code>empresaId + residuoId</code>).</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-INV-03</span>
+        <span class="texto">Se o resíduo já estiver no inventário mas inativo (<code>ativo: false</code>), a operação de adição o <strong>reativa</strong> ao invés de criar um novo registro, atualizando quantidade, unidade e frequência.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-INV-04</span>
+        <span class="texto">Remoção do inventário é <strong>soft delete</strong> (<code>ativo: false</code>). O histórico de coletas vinculado ao resíduo é preservado.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-INV-05</span>
+        <span class="texto">Tipos de resíduos suportados: ORGANICO, RECICLAVEL, ELETRONICO, HOSPITALAR, PERIGOSO. Unidades de medida: KG, LITRO, UNIDADE.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-INV-06</span>
+        <span class="texto">Frequências de geração: DIARIA, SEMANAL, QUINZENAL, MENSAL, SOB_DEMANDA.</span>
+      </li>
+    </ul>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 8 — MTR
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao" id="sec8">
+    <div class="secao-header">
+      <div class="num">8</div>
+      <h2>Regras de Negócio — MTR (Manifesto de Transporte de Resíduos)</h2>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">📋</span>
+      <div>
+        <strong>Base Legal</strong>
+        O Manifesto de Transporte de Resíduos (MTR) é exigido pela <strong>Resolução CONAMA 275/2001</strong> e deve conter dados completos do gerador, transportador, tipo de resíduo, volume e destinação final.
+      </div>
+    </div>
+    <div class="spacer"></div>
+
+    <ul class="regras">
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-08</span>
+        <span class="texto">Multi-tenancy no MTR é garantido via JOIN com a tabela <code>coletas</code>: a query filtra por <code>coleta.empresaId = empresaId</code> do JWT, impedindo acesso a manifestos de outras empresas.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-09</span>
+        <span class="texto">Assinatura requer que o MTR esteja em status EMITIDO ou ACEITO. Tentativa de assinar em RASCUNHO ou FINALIZADO retorna HTTP 422.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-MTR-10</span>
+        <span class="texto">O endpoint de PDF retorna JSON estruturado com: <code>manifesto</code> (número, status, datas), <code>gerador</code> (CNPJ, endereço completo), <code>transportador</code> (licença ambiental), <code>coleta.residuos</code>, e metadado de conformidade CONAMA 275/2001.</span>
+      </li>
+      <li class="regra lgpd">
+        <span class="codigo">RN-MTR-11</span>
+        <span class="texto">Todo acesso ao PDF do MTR gera AuditLog com ação DOWNLOAD_PDF_MTR (LGPD — controle de acesso a dados pessoais do gerador e transportador).</span>
+      </li>
+    </ul>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 9 — GESTÃO DE EMPRESA
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao page-break" id="sec9">
+    <div class="secao-header">
+      <div class="num">9</div>
+      <h2>Regras de Negócio — Gestão de Empresa</h2>
+    </div>
+
+    <div class="subsecao">
+      <h3>9.1 Atualização de Dados</h3>
+      <ul class="regras">
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-EMP-01</span>
+          <span class="texto">Apenas usuários com role ADMIN podem atualizar dados da empresa (PATCH /empresas/me). Campos imutáveis via API: CNPJ, tipo, plano, razão social principal.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-EMP-02</span>
+          <span class="texto">Requisição PATCH com body vazio retorna HTTP 400 com código EMPTY_BODY — evita operações nulas no banco.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="subsecao">
+      <h3>9.2 Exclusão de Conta (LGPD Art. 18)</h3>
+
+      <div class="callout danger">
+        <span class="icon">⚖️</span>
+        <div>
+          <strong>Conformidade LGPD — Direito à Exclusão</strong>
+          O endpoint DELETE /empresas/me/delete implementa o direito de exclusão previsto no Art. 18 da LGPD.
+          A exclusão é irreversível e anonimiza todos os dados pessoais.
+        </div>
+      </div>
+      <div class="spacer"></div>
+
+      <ul class="regras">
+        <li class="regra critico">
+          <span class="codigo">RN-EMP-03</span>
+          <span class="texto">A exclusão de conta executa em transação atômica: (1) revogar todos os refresh tokens; (2) desativar todos os usuários; (3) anonimizar empresa (email, CNPJ, razão social); (4) anonimizar emails de usuários; (5) criar AuditLog de exclusão.</span>
+        </li>
+        <li class="regra critico">
+          <span class="codigo">RN-EMP-04</span>
+          <span class="texto">Dados anonimizados: email → <code>deletado_{timestamp}@anonimizado.ecotrack</code>; CNPJ → <code>00.000.000/0000-XX</code>; razão social → <code>[CONTA ENCERRADA {timestamp}]</code>.</span>
+        </li>
+        <li class="regra lgpd">
+          <span class="codigo">RN-EMP-05</span>
+          <span class="texto">Registros de MTR são mantidos anonimizados para conformidade CONAMA — obrigação legal de manter rastro de destinação de resíduos. Não são excluídos.</span>
+        </li>
+        <li class="regra lgpd">
+          <span class="codigo">RN-EMP-06</span>
+          <span class="texto">O AuditLog de exclusão (ação EXCLUSAO_CONTA_LGPD) é mantido mesmo após a anonimização para rastreabilidade de auditoria regulatória.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="subsecao">
+      <h3>9.3 Gestão de Usuários</h3>
+      <ul class="regras">
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-EMP-07</span>
+          <span class="texto">Criação de usuário via API requer: email único, nome (mín. 2 chars), senha (mín. 8 chars), role. Senha é hasheada com bcrypt antes de persistir.</span>
+        </li>
+        <li class="regra obrigatorio">
+          <span class="codigo">RN-EMP-08</span>
+          <span class="texto">Listagem de usuários retorna apenas usuários com <code>ativo: true</code> — usuários desativados são ocultados.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 10 — CONFORMIDADE LEGAL
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao" id="sec10">
+    <div class="secao-header">
+      <div class="num">10</div>
+      <h2>Conformidade Legal</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Legislação</th><th>Exigência</th><th>Como o EcoTrack atende</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>LGPD</strong><br><small>Lei 13.709/2018</small></td>
+          <td>Proteção de dados pessoais, direito à exclusão</td>
+          <td>AuditLog em toda operação sensível; endpoint de anonimização LGPD Art. 18; dados pessoais mínimos coletados</td>
+        </tr>
+        <tr>
+          <td><strong>CONAMA 275/2001</strong></td>
+          <td>Manifesto de Transporte de Resíduos (MTR)</td>
+          <td>ManifestoMTR com dados do gerador, transportador, resíduos, assinaturas digitais; PDF estruturado conforme norma</td>
+        </tr>
+        <tr>
+          <td><strong>PNRS</strong><br><small>Lei 12.305/2010</small></td>
+          <td>Política Nacional de Resíduos Sólidos</td>
+          <td>Rastreamento completo de resíduos desde geração até destinação final; relatórios de conformidade</td>
+        </tr>
+        <tr>
+          <td><strong>SINIR</strong></td>
+          <td>Sistema Nacional de Informações sobre Resíduos</td>
+          <td>Fase 1: número MTR local. Fase 2: integração API SINIR para emissão e baixa oficial</td>
+        </tr>
+        <tr>
+          <td><strong>ABNT NBR 10.004</strong></td>
+          <td>Classificação de resíduos sólidos</td>
+          <td>Catálogo de resíduos com código IBAMA, classe ABNT e flag de periculosidade</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="spacer"></div>
+    <div class="subsecao">
+      <h3>Ações com AuditLog Obrigatório</h3>
+      <table>
+        <thead><tr><th>Ação</th><th>Recurso</th><th>Motivo</th></tr></thead>
+        <tbody>
+          <tr><td>LOGIN</td><td>usuario</td><td>Rastreabilidade de acesso</td></tr>
+          <tr><td>ACESSO_DADOS_EMPRESA</td><td>empresa</td><td>LGPD — dados sensíveis</td></tr>
+          <tr><td>LISTAR_USUARIOS</td><td>usuario</td><td>LGPD — dados pessoais</td></tr>
+          <tr><td>CRIAR_USUARIO</td><td>usuario</td><td>Controle de acesso</td></tr>
+          <tr><td>EMITIR_MTR</td><td>manifestoMTR</td><td>Conformidade CONAMA</td></tr>
+          <tr><td>ASSINAR_MTR_{TIPO}</td><td>manifestoMTR</td><td>Conformidade CONAMA</td></tr>
+          <tr><td>DOWNLOAD_PDF_MTR</td><td>manifestoMTR</td><td>LGPD — dados gerador/transportador</td></tr>
+          <tr><td>ATUALIZAR_EMPRESA</td><td>empresa</td><td>Auditoria de mudanças</td></tr>
+          <tr><td>EXCLUSAO_CONTA_LGPD</td><td>empresa</td><td>LGPD Art. 18 — direito à exclusão</td></tr>
+          <tr><td>CRIAR_COLETA</td><td>coleta</td><td>Rastreabilidade ambiental</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 11 — MULTI-TENANCY E SEGURANÇA
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao page-break" id="sec11">
+    <div class="secao-header">
+      <div class="num">11</div>
+      <h2>Multi-tenancy e Segurança</h2>
+    </div>
+
+    <ul class="regras">
+      <li class="regra critico">
+        <span class="codigo">RN-SEC-01</span>
+        <span class="texto"><strong>Multi-tenancy:</strong> Toda query ao banco filtra por <code>empresaId</code> extraído do JWT. É impossível para um usuário acessar dados de outra empresa — mesmo com um ID válido de recurso alheio.</span>
+      </li>
+      <li class="regra critico">
+        <span class="codigo">RN-SEC-02</span>
+        <span class="texto">MTRs são buscados via JOIN na tabela coletas (<code>coleta.empresaId = empresaId</code>), garantindo isolamento mesmo sem campo direto de empresa no manifesto.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-SEC-03</span>
+        <span class="texto">Todas as rotas (exceto GET /residuos catálogo público) exigem JWT válido via hook <code>onRequest: [fastify.authenticate]</code>.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-SEC-04</span>
+        <span class="texto">Rotas administrativas (PATCH empresa, DELETE empresa, CRUD usuários) exigem hook adicional <code>fastify.authenticateAdmin</code> que valida <code>role === "ADMIN"</code>.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-SEC-05</span>
+        <span class="texto">Padrão de resposta de erro unificado: <code>{ success: false, error: { code: "CODIGO", message: "Descrição" } }</code>. Códigos de erro nunca expõem detalhes internos.</span>
+      </li>
+      <li class="regra obrigatorio">
+        <span class="codigo">RN-SEC-06</span>
+        <span class="texto">Padrão de resposta de sucesso: <code>{ success: true, data: {}, meta: {} }</code>. Meta contém paginação quando aplicável.</span>
+      </li>
+    </ul>
+
+    <div class="spacer"></div>
+
+    <div class="callout warning">
+      <span class="icon">🔒</span>
+      <div>
+        <strong>Isolamento de Dados</strong>
+        O EcoTrack implementa Row-Level Security via aplicação (não via PostgreSQL RLS nativo).
+        O <code>empresaId</code> extraído do JWT assinado é a fonte de verdade para todo isolamento — ele não pode ser sobrescrito por parâmetros da requisição.
+      </div>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 12 — API REST
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao" id="sec12">
+    <div class="secao-header">
+      <div class="num">12</div>
+      <h2>API REST — Endpoints</h2>
+    </div>
+
+    <p style="font-size:9pt;color:var(--gray-600);margin-bottom:16px;">Base URL: <code style="background:var(--gray-100);padding:2px 6px;border-radius:4px;">http://api.ecotrack.com.br/api/v1</code> · Autenticação: <code style="background:var(--gray-100);padding:2px 6px;border-radius:4px;">Authorization: Bearer {token}</code></p>
+
+    <div class="subsecao">
+      <h3>Autenticação</h3>
+      <div class="endpoints">
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/auth/login</span><span class="desc">Login com email e senha</span></div>
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/auth/cadastro</span><span class="desc">Cadastro de empresa + usuário ADMIN</span></div>
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/auth/refresh</span><span class="desc">Renovar access token (rotação de refresh)</span></div>
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/auth/logout</span><span class="desc">Revogar refresh token</span></div>
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/auth/me</span><span class="desc">Dados do usuário autenticado</span></div>
+      </div>
+    </div>
+
+    <div class="subsecao">
+      <h3>Coletas</h3>
+      <div class="endpoints">
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/coletas</span><span class="desc">Listar coletas (paginado, filtros: status, data)</span></div>
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/coletas</span><span class="desc">Agendar nova coleta</span></div>
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/coletas/:id</span><span class="desc">Detalhar coleta com histórico</span></div>
+        <div class="endpoint"><span class="method patch">PATCH</span><span class="path">/coletas/:id/status</span><span class="desc">Atualizar status (máquina de estados)</span></div>
+        <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/coletas/:id</span><span class="desc">Cancelar coleta (prazo: 24h)</span></div>
+      </div>
+    </div>
+
+    <div class="subsecao">
+      <h3>Resíduos e Inventário</h3>
+      <div class="endpoints">
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/residuos</span><span class="desc">Catálogo público (ABNT NBR 10.004)</span></div>
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/residuos/inventario</span><span class="desc">Inventário da empresa autenticada</span></div>
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/residuos/inventario</span><span class="desc">Adicionar resíduo ao inventário</span></div>
+        <div class="endpoint"><span class="method patch">PATCH</span><span class="path">/residuos/inventario/:id</span><span class="desc">Atualizar item do inventário</span></div>
+        <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/residuos/inventario/:id</span><span class="desc">Remover do inventário (soft delete)</span></div>
+      </div>
+    </div>
+
+    <div class="subsecao">
+      <h3>MTR — Manifesto de Transporte</h3>
+      <div class="endpoints">
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/mtr</span><span class="desc">Listar MTRs da empresa (via JOIN coleta)</span></div>
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/mtr</span><span class="desc">Emitir MTR para uma coleta</span></div>
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/mtr/:id</span><span class="desc">Detalhar MTR com gerador e transportador</span></div>
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/mtr/:id/assinar</span><span class="desc">Assinar digitalmente (GERADOR/TRANSPORTADOR/DESTINADOR)</span></div>
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/mtr/:id/pdf</span><span class="desc">Dados estruturados para PDF (CONAMA 275/2001)</span></div>
+      </div>
+    </div>
+
+    <div class="subsecao">
+      <h3>Empresa e Usuários</h3>
+      <div class="endpoints">
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/empresas/me</span><span class="desc">Dados da empresa autenticada</span></div>
+        <div class="endpoint"><span class="method patch">PATCH</span><span class="path">/empresas/me</span><span class="desc">Atualizar dados (somente ADMIN)</span></div>
+        <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/empresas/me/delete</span><span class="desc">Exclusão de conta — LGPD Art. 18 (ADMIN)</span></div>
+        <div class="endpoint"><span class="method get">GET</span><span class="path">/empresas/me/usuarios</span><span class="desc">Listar usuários da empresa (ADMIN)</span></div>
+        <div class="endpoint"><span class="method post">POST</span><span class="path">/empresas/me/usuarios</span><span class="desc">Convidar novo usuário (ADMIN)</span></div>
+        <div class="endpoint"><span class="method patch">PATCH</span><span class="path">/empresas/me/usuarios/:id</span><span class="desc">Atualizar role/nome (ADMIN)</span></div>
+        <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/empresas/me/usuarios/:id</span><span class="desc">Desativar usuário (ADMIN)</span></div>
+      </div>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 13 — PLANOS SAAS
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao page-break" id="sec13">
+    <div class="secao-header">
+      <div class="num">13</div>
+      <h2>Planos SaaS</h2>
+    </div>
+
+    <div class="planos">
+      <div class="plano">
+        <div class="nome-plano">FREE</div>
+        <div class="preco">R$ 0/mês</div>
+        <ul>
+          <li>Até 5 coletas/mês</li>
+          <li>1 usuário</li>
+          <li>MTR básico (local)</li>
+          <li>Dashboard simplificado</li>
+        </ul>
+      </div>
+      <div class="plano destaque">
+        <div class="nome-plano">STARTER</div>
+        <div class="preco">R$ 149/mês</div>
+        <ul>
+          <li>Até 30 coletas/mês</li>
+          <li>3 usuários</li>
+          <li>MTR + PDF</li>
+          <li>Relatórios mensais</li>
+          <li>Exportação CSV</li>
+        </ul>
+      </div>
+      <div class="plano">
+        <div class="nome-plano">PROFESSIONAL</div>
+        <div class="preco">R$ 399/mês</div>
+        <ul>
+          <li>Coletas ilimitadas</li>
+          <li>10 usuários</li>
+          <li>SINIR integrado</li>
+          <li>Rastreamento GPS</li>
+          <li>Relatórios customizados</li>
+          <li>API access</li>
+        </ul>
+      </div>
+      <div class="plano">
+        <div class="nome-plano">ENTERPRISE</div>
+        <div class="preco">Sob consulta</div>
+        <ul>
+          <li>Multifilial</li>
+          <li>Usuários ilimitados</li>
+          <li>SLA 99.9%</li>
+          <li>Suporte dedicado</li>
+          <li>SSO / SAML</li>
+          <li>Customização</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top:16px;">
+      <span class="icon">ℹ️</span>
+      <div>
+        <strong>Nota de Implementação</strong>
+        O campo <code>plano</code> (enum: FREE, STARTER, PROFESSIONAL, ENTERPRISE) está modelado no banco e no JWT.
+        A lógica de limites por plano será implementada na Fase 2 com middleware de quota e integração com gateway de pagamento (Stripe/Iugu).
+      </div>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 14 — ROADMAP
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao" id="sec14">
+    <div class="secao-header">
+      <div class="num">14</div>
+      <h2>Roadmap de Fases</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Fase</th><th>Features</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Fase 1 — MVP</strong></td>
+          <td>
+            Autenticação JWT + refresh token · Cadastro de empresa + usuários ·
+            Inventário de resíduos · Agendamento de coletas · Máquina de estados ·
+            MTR local (número sequencial) · Assinatura digital básica ·
+            Dashboard com métricas · Rastreamento no mapa · Relatórios com export CSV ·
+            Marketplace demonstrativo
+          </td>
+          <td style="color:#16A34A;font-weight:700;">✅ Implementado</td>
+        </tr>
+        <tr>
+          <td><strong>Fase 2 — Automação</strong></td>
+          <td>
+            Integração API SINIR (emissão oficial MTR) · App mobile motorista (React Native) ·
+            WebSocket rastreamento GPS em tempo real · BullMQ: filas de notificação e relatórios ·
+            Gateway de pagamento (Stripe/Iugu) · Enforcement de limites por plano ·
+            Push notifications
+          </td>
+          <td style="color:#F97316;font-weight:700;">🔄 Planejado</td>
+        </tr>
+        <tr>
+          <td><strong>Fase 3 — Inteligência</strong></td>
+          <td>
+            Otimização de rotas por IA · PGRS automatizado (Plano de Gerenciamento) ·
+            Marketplace de resíduos recicláveis · Scoring de sustentabilidade ESG ·
+            Integrações ERP (SAP, TOTVS) · Multi-idioma
+          </td>
+          <td style="color:#9CA3AF;font-weight:700;">📋 Futuro</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SEÇÃO 15 — MODELO DE DADOS
+══════════════════════════════════════════════════════════════════════════ -->
+  <div class="secao page-break" id="sec15">
+    <div class="secao-header">
+      <div class="num">15</div>
+      <h2>Modelo de Dados</h2>
+    </div>
+
+    <p style="font-size:9pt;color:var(--gray-600);margin-bottom:16px;">Banco: <strong>PostgreSQL 15</strong> · ORM: <strong>Prisma</strong> · Schema completo em <code>apps/api/prisma/schema.prisma</code></p>
+
+    <table>
+      <thead>
+        <tr><th>Entidade</th><th>Descrição</th><th>Relações Principais</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Empresa</strong></td>
+          <td>Root do multi-tenant. CNPJ único. Tipos: GERADOR, TRANSPORTADOR, DESTINADOR</td>
+          <td>1:N Usuarios, 1:N Coletas, 1:N InventarioResiduo</td>
+        </tr>
+        <tr>
+          <td><strong>Usuario</strong></td>
+          <td>Autenticação e autorização por role (ADMIN, OPERADOR, MOTORISTA)</td>
+          <td>N:1 Empresa, 1:N RefreshToken</td>
+        </tr>
+        <tr>
+          <td><strong>RefreshToken</strong></td>
+          <td>Token opaco com expiração e flag de revogação</td>
+          <td>N:1 Usuario</td>
+        </tr>
+        <tr>
+          <td><strong>Residuo</strong></td>
+          <td>Catálogo global de tipos de resíduos (ABNT NBR 10.004)</td>
+          <td>1:N InventarioResiduo, 1:N ColetaResiduo</td>
+        </tr>
+        <tr>
+          <td><strong>InventarioResiduo</strong></td>
+          <td>Vínculo empresa ↔ resíduo com quantidade, unidade e frequência</td>
+          <td>N:1 Empresa, N:1 Residuo · unique(empresaId, residuoId)</td>
+        </tr>
+        <tr>
+          <td><strong>Coleta</strong></td>
+          <td>Agendamento de coleta com endereço snapshot e máquina de estados</td>
+          <td>N:1 Empresa (gerador), N:1 Empresa (transportador), 1:1 ManifestoMTR</td>
+        </tr>
+        <tr>
+          <td><strong>ColetaResiduo</strong></td>
+          <td>Linha da coleta: resíduo, quantidade estimada e real</td>
+          <td>N:1 Coleta, N:1 Residuo</td>
+        </tr>
+        <tr>
+          <td><strong>ColetaStatusHistorico</strong></td>
+          <td>Auditoria de cada transição de status da coleta</td>
+          <td>N:1 Coleta</td>
+        </tr>
+        <tr>
+          <td><strong>ManifestoMTR</strong></td>
+          <td>MTR digital com número SINIR, assinaturas (Gerador/Transportador/Destinador) e PDF</td>
+          <td>1:1 Coleta (unique coletaId)</td>
+        </tr>
+        <tr>
+          <td><strong>AuditLog</strong></td>
+          <td>Log LGPD: ação, recurso, usuário, IP, userAgent, timestamp</td>
+          <td>N:1 Empresa, N:1 Usuario</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="spacer"></div>
+
+    <div class="subsecao">
+      <h3>Enums do Domínio</h3>
+      <table>
+        <thead><tr><th>Enum</th><th>Valores</th></tr></thead>
+        <tbody>
+          <tr><td>TipoEmpresa</td><td>GERADOR · TRANSPORTADOR · DESTINADOR</td></tr>
+          <tr><td>RoleUsuario</td><td>ADMIN · OPERADOR · MOTORISTA</td></tr>
+          <tr><td>TipoResiduo</td><td>ORGANICO · RECICLAVEL · ELETRONICO · HOSPITALAR · PERIGOSO</td></tr>
+          <tr><td>UnidadeMedida</td><td>KG · LITRO · UNIDADE</td></tr>
+          <tr><td>FrequenciaColeta</td><td>DIARIA · SEMANAL · QUINZENAL · MENSAL · SOB_DEMANDA</td></tr>
+          <tr><td>StatusColeta</td><td>PENDENTE · CONFIRMADA · EM_ROTA · COLETADO · FINALIZADO · CANCELADO</td></tr>
+          <tr><td>StatusMTR</td><td>RASCUNHO · EMITIDO · ACEITO · FINALIZADO · CANCELADO</td></tr>
+          <tr><td>PlanoSaaS</td><td>FREE · STARTER · PROFESSIONAL · ENTERPRISE</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="subsecao">
+      <h3>Fatores de Impacto Ambiental</h3>
+      <table>
+        <thead><tr><th>Métrica</th><th>Fator</th><th>Base</th></tr></thead>
+        <tbody>
+          <tr><td>CO₂ evitado (reciclável)</td><td>2,5 kg CO₂ por kg reciclado</td><td>Média da indústria de reciclagem</td></tr>
+          <tr><td>Água economizada</td><td>10 L por kg reciclado</td><td>Estimativa conservadora</td></tr>
+          <tr><td>CO₂ evitado (orgânico)</td><td>0,8 kg CO₂ por kg compostado</td><td>Comparado ao aterro sanitário</td></tr>
+          <tr><td>Equivalência árvores</td><td>÷ 22 kg CO₂/árvore/ano</td><td>Estimativa média</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="rodape">
+    <p><strong>EcoTrack SaaS</strong> · Versão 1.0 · Abril 2026</p>
+    <p style="margin-top:4px;">Documento confidencial gerado pela plataforma EcoTrack. Conformidade: LGPD · CONAMA 275/2001 · PNRS Lei 12.305/2010</p>
+  </div>
+
+</div>
+</body>
+</html>
