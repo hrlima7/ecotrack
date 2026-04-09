@@ -108,6 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return json.data as AuthUser;
   }
 
+  function applySession(accessToken: string, refreshToken: string, usuario: AuthUser) {
+    persistTokens(accessToken, refreshToken);
+    setState({ user: usuario, accessToken, isAuthenticated: true, isLoading: false });
+  }
+
   const login = useCallback(async (email: string, senha: string) => {
     const res = await fetch(`${API_BASE}${API_ROUTES.AUTH.LOGIN}`, {
       method: "POST",
@@ -122,15 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const { accessToken, refreshToken, usuario } = json.data;
-
-    persistTokens(accessToken, refreshToken);
-
-    setState({
-      user: usuario,
-      accessToken,
-      isAuthenticated: true,
-      isLoading: false,
-    });
+    applySession(accessToken, refreshToken, usuario);
   }, []);
 
   const logout = useCallback(async () => {
