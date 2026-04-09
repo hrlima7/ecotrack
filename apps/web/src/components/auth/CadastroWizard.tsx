@@ -107,8 +107,8 @@ const empresaSchema = z.object({
   telefone: z
     .string()
     .regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, LABELS.ERRO_TELEFONE)
-    .optional()
-    .or(z.literal("")),
+    .or(z.literal(""))
+    .optional(),
   tipo: z.enum(["GERADOR", "TRANSPORTADOR", "DESTINADOR"], {
     errorMap: () => ({ message: LABELS.ERRO_TIPO }),
   }),
