@@ -89,7 +89,11 @@ export async function buildApp() {
 
   // ─── Plugins de Infraestrutura ──────────────────────────────────────────
   await app.register(prismaPlugin);
-  await app.register(redisPlugin);
+  // Redis não é necessário nos testes de integração (auth/coletas).
+  // Em produção/dev é obrigatório para filas e rate limit distribuído.
+  if (!process.env.VITEST) {
+    await app.register(redisPlugin);
+  }
   await app.register(jwtPlugin);
 
   // ─── Health Check ────────────────────────────────────────────────────────
