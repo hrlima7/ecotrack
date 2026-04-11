@@ -173,4 +173,7 @@ async function main() {
   }
 }
 
-main();
+// Não inicia o servidor quando o módulo é importado durante os testes (vitest)
+if (!process.env.VITEST) {
+  main();
+}
