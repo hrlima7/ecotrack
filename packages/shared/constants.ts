@@ -57,6 +57,7 @@ export const ROUTES = {
   LOGIN: "/login",
   CADASTRO: "/cadastro",
   DASHBOARD: "/dashboard",
+  COLETAS: "/coletas",
   AGENDAR: "/agendar",
   RASTREAMENTO: "/rastreamento",
   RELATORIOS: "/relatorios",
