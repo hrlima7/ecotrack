@@ -11,6 +11,7 @@ import type { NextRequest } from "next/server";
 /** Rotas que exigem autenticação */
 const ROTAS_PROTEGIDAS = [
   "/dashboard",
+  "/coletas",
   "/agendar",
   "/rastreamento",
   "/relatorios",
