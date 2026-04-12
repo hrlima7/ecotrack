@@ -210,6 +210,8 @@ export interface JwtPayload {
   role: RoleUsuario;
   /** Presente apenas no refresh token */
   type?: "refresh";
+  /** JWT ID — garante unicidade do token (usado em refresh tokens) */
+  jti?: string;
   iat?: number;
   exp?: number;
 }
