@@ -8,6 +8,7 @@
  */
 
 import type { FastifyPluginAsync } from "fastify";
+import { randomUUID } from "node:crypto";
 import bcrypt from "bcrypt";
 import type { RoleUsuario } from "@ecotrack/shared";
 import { loginSchema, cadastroEmpresaSchema, refreshTokenSchema } from "../schemas/auth.schema";
