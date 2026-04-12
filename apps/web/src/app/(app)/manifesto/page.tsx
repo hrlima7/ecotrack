@@ -288,6 +288,120 @@ export default function ManifestoPage() {
     assinar.mutate({ id, tipo: "GERADOR", assinatura });
   }
 
+  async function handleBaixarPdf(id: string) {
+    if (!accessToken) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/mtr/${id}/pdf`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!res.ok) {
+        alert("Erro ao buscar dados do MTR para PDF.");
+        return;
+      }
+
+      const json = await res.json();
+      const d = json.data;
+
+      const residuosHtml = d.coleta.residuos
+        .map(
+          (r: { residuo: { tipo: string; descricao: string }; quantidadeEstimada: number; unidade: string }) =>
+            `<tr>
+              <td style="border:1px solid #ccc;padding:6px 8px;font-size:12px">${r.residuo.tipo}</td>
+              <td style="border:1px solid #ccc;padding:6px 8px;font-size:12px">${r.residuo.descricao}</td>
+              <td style="border:1px solid #ccc;padding:6px 8px;font-size:12px;text-align:right">${r.quantidadeEstimada} ${r.unidade}</td>
+            </tr>`
+        )
+        .join("");
+
+      const dataEmissao = d.manifesto.emitidoEm
+        ? new Date(d.manifesto.emitidoEm).toLocaleDateString("pt-BR")
+        : "—";
+      const dataColeta = new Date(d.coleta.dataAgendada).toLocaleDateString("pt-BR");
+
+      const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>MTR ${d.manifesto.numero} — EcoTrack</title>
+  <style>
+    @media print { body { margin: 0; } }
+    body { font-family: Inter, Arial, sans-serif; color: #111; max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 18px; text-align: center; margin: 0 0 4px; }
+    .subtitle { font-size: 11px; text-align: center; color: #6B7280; margin: 0 0 24px; }
+    .section { margin-bottom: 16px; }
+    .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #16A34A; border-bottom: 2px solid #16A34A; padding-bottom: 4px; margin-bottom: 8px; }
+    .field { display: flex; margin-bottom: 4px; font-size: 12px; }
+    .field-label { font-weight: 600; min-width: 140px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+    th { background: #F3F4F6; border: 1px solid #ccc; padding: 6px 8px; font-size: 11px; text-align: left; }
+    .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #E5E7EB; text-align: center; font-size: 10px; color: #9CA3AF; }
+    .stamp { display: inline-block; border: 2px solid #16A34A; color: #16A34A; font-weight: 700; padding: 4px 12px; border-radius: 4px; font-size: 14px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div style="text-align:center"><span class="stamp">${d.manifesto.status}</span></div>
+  <h1>Manifesto de Transporte de Residuos - MTR</h1>
+  <p class="subtitle">${d.conformidade.resolucao} | ${d.conformidade.plataforma} | Numero: ${d.manifesto.numero}</p>
+
+  <div class="section">
+    <div class="section-title">Dados do Manifesto</div>
+    <div class="field"><span class="field-label">Numero MTR:</span> ${d.manifesto.numero}</div>
+    <div class="field"><span class="field-label">Status:</span> ${d.manifesto.status}</div>
+    <div class="field"><span class="field-label">Data de Emissao:</span> ${dataEmissao}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Gerador</div>
+    <div class="field"><span class="field-label">Razao Social:</span> ${d.gerador.razaoSocial}</div>
+    <div class="field"><span class="field-label">CNPJ:</span> ${d.gerador.cnpj}</div>
+    <div class="field"><span class="field-label">Endereco:</span> ${d.gerador.logradouro}, ${d.gerador.numero} — ${d.gerador.cidade}/${d.gerador.estado} CEP ${d.gerador.cep}</div>
+    ${d.gerador.email ? `<div class="field"><span class="field-label">E-mail:</span> ${d.gerador.email}</div>` : ""}
+    ${d.gerador.telefone ? `<div class="field"><span class="field-label">Telefone:</span> ${d.gerador.telefone}</div>` : ""}
+  </div>
+
+  ${d.transportador ? `
+  <div class="section">
+    <div class="section-title">Transportador</div>
+    <div class="field"><span class="field-label">Razao Social:</span> ${d.transportador.razaoSocial}</div>
+    <div class="field"><span class="field-label">CNPJ:</span> ${d.transportador.cnpj}</div>
+    ${d.transportador.licencaAmbiental ? `<div class="field"><span class="field-label">Licenca Ambiental:</span> ${d.transportador.licencaAmbiental}</div>` : ""}
+    <div class="field"><span class="field-label">Endereco:</span> ${d.transportador.logradouro}, ${d.transportador.numero} — ${d.transportador.cidade}/${d.transportador.estado}</div>
+  </div>` : ""}
+
+  <div class="section">
+    <div class="section-title">Dados da Coleta</div>
+    <div class="field"><span class="field-label">Data Agendada:</span> ${dataColeta}</div>
+    <div class="field"><span class="field-label">Local:</span> ${d.coleta.logradouro}, ${d.coleta.numero} — ${d.coleta.bairro}, ${d.coleta.cidade}/${d.coleta.estado} CEP ${d.coleta.cep}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Residuos Transportados</div>
+    <table>
+      <thead><tr><th>Tipo</th><th>Descricao</th><th style="text-align:right">Quantidade</th></tr></thead>
+      <tbody>${residuosHtml}</tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <p>Documento gerado pela plataforma ${d.conformidade.plataforma} em ${new Date(d.conformidade.geradoEm).toLocaleString("pt-BR")}</p>
+    <p>Conforme ${d.conformidade.resolucao} — Arquivamento eletronico por 5 anos</p>
+  </div>
+</body>
+</html>`;
+
+      const printWindow = window.open("", "_blank");
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.onload = () => printWindow.print();
+      }
+    } catch {
+      alert("Erro ao gerar PDF do MTR.");
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
