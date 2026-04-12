@@ -14,6 +14,7 @@ import { prismaPlugin } from "./plugins/prisma";
 import { redisPlugin } from "./plugins/redis";
 import { jwtPlugin } from "./plugins/jwt";
 
+import { ZodError } from "zod";
 import { authRoutes } from "./routes/auth";
 import { coletasRoutes } from "./routes/coletas";
 import { residuosRoutes } from "./routes/residuos";
