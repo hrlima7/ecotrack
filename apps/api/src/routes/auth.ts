@@ -76,7 +76,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
       // 4. Gerar refresh token e salvar no banco
       const refreshToken = fastify.jwt.sign(
-        { sub: usuario.id, empresaId: usuario.empresaId, role: usuario.role as RoleUsuario, email: usuario.email, type: "refresh" as const },
+        { sub: usuario.id, empresaId: usuario.empresaId, role: usuario.role as RoleUsuario, email: usuario.email, type: "refresh" as const, jti: randomUUID() },
         { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" }
       );
 
@@ -208,7 +208,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       });
 
       const refreshToken = fastify.jwt.sign(
-        { sub: usuario.id, empresaId: empresa.id, role: usuario.role as RoleUsuario, email: usuario.email, type: "refresh" as const },
+        { sub: usuario.id, empresaId: empresa.id, role: usuario.role as RoleUsuario, email: usuario.email, type: "refresh" as const, jti: randomUUID() },
         { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" }
       );
 
@@ -311,7 +311,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       });
 
       const newRefreshToken = fastify.jwt.sign(
-        { sub: usuario.id, empresaId: usuario.empresaId, role: usuario.role as RoleUsuario, email: usuario.email, type: "refresh" as const },
+        { sub: usuario.id, empresaId: usuario.empresaId, role: usuario.role as RoleUsuario, email: usuario.email, type: "refresh" as const, jti: randomUUID() },
         { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d" }
       );
 
