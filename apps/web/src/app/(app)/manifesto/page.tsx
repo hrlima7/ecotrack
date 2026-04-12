@@ -165,10 +165,12 @@ function EmitirMtrModal({
 function MtrCard({
   mtr,
   onAssinar,
+  onBaixarPdf,
   isAssinarPending,
 }: {
   mtr: ManifestoMTR;
   onAssinar: (id: string) => void;
+  onBaixarPdf: (id: string) => void;
   isAssinarPending: boolean;
 }) {
   const residuosLabel = mtr.coleta.residuos
