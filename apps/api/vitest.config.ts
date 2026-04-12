@@ -8,8 +8,14 @@
  */
 
 import { defineConfig } from "vitest/config";
+import { resolve } from "node:path";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@ecotrack/shared": resolve(__dirname, "../../packages/shared/index.ts"),
+    },
+  },
   test: {
     environment: "node",
     globals: false,
