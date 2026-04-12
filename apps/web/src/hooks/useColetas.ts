@@ -116,5 +116,36 @@ export function useColetas(filtros: FiltrosColeta = {}) {
     },
   });
 
-  return { query, criar };
+  const atualizarStatus = useMutation({
+    mutationFn: async ({ id, status, pesoRealKg, motivo }: AtualizarStatusPayload) => {
+      const res = await fetch(`${API_BASE}${API_ROUTES.COLETAS.STATUS(id)}`, {
+        method: "PATCH",
+        headers: authHeaders(accessToken!),
+        body: JSON.stringify({ status, pesoRealKg, motivo }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message ?? "Erro ao atualizar status");
+      return json.data as Coleta;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coletas"] });
+    },
+  });
+
+  const cancelar = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${API_BASE}${API_ROUTES.COLETAS.BY_ID(id)}`, {
+        method: "DELETE",
+        headers: authHeaders(accessToken!),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message ?? "Erro ao cancelar coleta");
+      return json.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coletas"] });
+    },
+  });
+
+  return { query, criar, atualizarStatus, cancelar };
 }
