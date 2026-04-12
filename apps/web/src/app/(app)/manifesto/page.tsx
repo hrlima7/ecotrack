@@ -234,14 +234,13 @@ function MtrCard({
       {/* Ações */}
       <div className="flex items-center gap-2 flex-shrink-0">
         {podeBaixarPdf && (
-          <a
-            href={`/api/v1/mtr/${mtr.id}/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => onBaixarPdf(mtr.id)}
             className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted transition-colors"
           >
             PDF
-          </a>
+          </button>
         )}
         {podeAssinar && (
           <button
