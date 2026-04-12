@@ -115,9 +115,21 @@ export async function buildApp() {
   app.setErrorHandler((error, _req, reply) => {
     app.log.error(error);
 
+    // Erros de validação Zod — .parse() lança ZodError sem statusCode
+    if (error instanceof ZodError) {
+      return reply.status(400).send({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: error.errors.map((e) => e.message).join("; "),
+          details: error.errors,
+        },
+      });
+    }
+
     const statusCode = error.statusCode ?? 500;
 
-    // Erros de validação Zod/Fastify
+    // Erros de validação Fastify (schema JSON)
     if (statusCode === 400) {
       return reply.status(400).send({
         success: false,
