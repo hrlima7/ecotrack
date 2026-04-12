@@ -116,13 +116,14 @@ export async function buildApp() {
     app.log.error(error);
 
     // Erros de validação Zod — .parse() lança ZodError sem statusCode
-    if (error instanceof ZodError) {
+    if (error.name === "ZodError" || (error as any).issues) {
+      const issues = (error as any).issues ?? (error as any).errors ?? [];
       return reply.status(400).send({
         success: false,
         error: {
           code: "VALIDATION_ERROR",
-          message: error.errors.map((e) => e.message).join("; "),
-          details: error.errors,
+          message: issues.map((e: { message: string }) => e.message).join("; "),
+          details: issues,
         },
       });
     }
