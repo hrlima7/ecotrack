@@ -350,6 +350,7 @@ export default function ManifestoPage() {
                   key={mtr.id}
                   mtr={mtr}
                   onAssinar={handleAssinar}
+                  onBaixarPdf={handleBaixarPdf}
                   isAssinarPending={assinar.isPending}
                 />
               ))}
