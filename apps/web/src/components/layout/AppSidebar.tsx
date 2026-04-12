@@ -11,6 +11,7 @@ import { ROUTES } from "@ecotrack/shared";
 
 const NAV_ITEMS = [
   { href: ROUTES.DASHBOARD, label: "Dashboard", icone: "📊" },
+  { href: ROUTES.COLETAS, label: "Minhas Coletas", icone: "♻️" },
   { href: ROUTES.AGENDAR, label: "Agendar Coleta", icone: "📅" },
   { href: ROUTES.RASTREAMENTO, label: "Rastreamento", icone: "🗺️" },
   { href: ROUTES.MANIFESTO, label: "Manifestos MTR", icone: "📋" },
