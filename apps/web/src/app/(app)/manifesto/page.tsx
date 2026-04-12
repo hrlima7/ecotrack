@@ -9,8 +9,11 @@
 import { useState } from "react";
 import { useMtr } from "@/hooks/useMtr";
 import { useColetas } from "@/hooks/useColetas";
+import { useAuth } from "@/contexts/auth.context";
 import { Spinner } from "@/components/ui/Spinner";
 import type { StatusMtr, ManifestoMTR } from "@/hooks/useMtr";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // ─── Cores por status MTR ────────────────────────────────────────────────────
 
