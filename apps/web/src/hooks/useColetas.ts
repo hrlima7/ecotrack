@@ -51,6 +51,15 @@ export interface CriarColetaPayload {
   observacoes?: string;
 }
 
+export type ColetaStatus = "PENDENTE" | "CONFIRMADA" | "EM_ROTA" | "COLETADO" | "FINALIZADO" | "CANCELADO";
+
+export interface AtualizarStatusPayload {
+  id: string;
+  status: ColetaStatus;
+  pesoRealKg?: number;
+  motivo?: string;
+}
+
 export interface FiltrosColeta {
   status?: string;
   page?: number;
