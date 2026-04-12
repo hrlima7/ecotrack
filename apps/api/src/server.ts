@@ -97,21 +97,8 @@ export async function buildApp() {
   }
   await app.register(jwtPlugin);
 
-  // ─── Health Check ────────────────────────────────────────────────────────
-  app.get("/health", { schema: { hide: true } }, async () => ({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version ?? "0.1.0",
-  }));
-
-  // ─── Rotas da API ────────────────────────────────────────────────────────
-  await app.register(authRoutes, { prefix: `${API_PREFIX}/auth` });
-  await app.register(coletasRoutes, { prefix: `${API_PREFIX}/coletas` });
-  await app.register(residuosRoutes, { prefix: `${API_PREFIX}/residuos` });
-  await app.register(mtrRoutes, { prefix: `${API_PREFIX}/mtr` });
-  await app.register(empresasRoutes, { prefix: `${API_PREFIX}/empresas` });
-
   // ─── Handler de erros global ─────────────────────────────────────────────
+  // Registrado ANTES das rotas para que os plugins encapsulados o herdem.
   app.setErrorHandler((error, _req, reply) => {
     app.log.error(error);
 
@@ -170,6 +157,20 @@ export async function buildApp() {
       },
     });
   });
+
+  // ─── Health Check ────────────────────────────────────────────────────────
+  app.get("/health", { schema: { hide: true } }, async () => ({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version ?? "0.1.0",
+  }));
+
+  // ─── Rotas da API ────────────────────────────────────────────────────────
+  await app.register(authRoutes, { prefix: `${API_PREFIX}/auth` });
+  await app.register(coletasRoutes, { prefix: `${API_PREFIX}/coletas` });
+  await app.register(residuosRoutes, { prefix: `${API_PREFIX}/residuos` });
+  await app.register(mtrRoutes, { prefix: `${API_PREFIX}/mtr` });
+  await app.register(empresasRoutes, { prefix: `${API_PREFIX}/empresas` });
 
   return app;
 }
