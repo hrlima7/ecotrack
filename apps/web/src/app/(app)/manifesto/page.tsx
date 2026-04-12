@@ -263,6 +263,7 @@ function MtrCard({
 // ─── Página principal ─────────────────────────────────────────────────────────
 
 export default function ManifestoPage() {
+  const { accessToken } = useAuth();
   const [filtroAtivo, setFiltroAtivo] = useState<StatusMtr | "TODOS">("TODOS");
   const [modalAberto, setModalAberto] = useState(false);
   const [erroEmissao, setErroEmissao] = useState<string | null>(null);
