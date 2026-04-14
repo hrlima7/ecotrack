@@ -77,6 +77,7 @@ export const API_ROUTES = {
     REFRESH: `${API_PREFIX}/auth/refresh`,
     LOGOUT: `${API_PREFIX}/auth/logout`,
     ME: `${API_PREFIX}/auth/me`,
+    CHANGE_PASSWORD: `${API_PREFIX}/auth/senha`,
   },
   COLETAS: {
     BASE: `${API_PREFIX}/coletas`,
