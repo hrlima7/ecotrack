@@ -97,24 +97,32 @@ export default function DashboardPage() {
 
   const m = metricsQuery.data;
 
+  function mapTendencia(t?: { valor: number; tipo: "positivo" | "negativo" }) {
+    if (!t) return { valor: 0, tipo: "neutro" as const };
+    return {
+      valor: t.valor,
+      tipo: t.tipo === "positivo" ? ("alta" as const) : ("baixa" as const),
+    };
+  }
+
   const metricas = [
     {
       titulo: "Total Coletado",
       valor: m ? `${m.resumo.totalPesoKg.toLocaleString("pt-BR")} kg` : "-- kg",
       descricao: PERIODOS.find((p) => p.value === periodo)?.label ?? "",
-      tendencia: m?.tendencias.peso ?? { valor: 0, tipo: "neutro" as const },
+      tendencia: mapTendencia(m?.tendencias.peso),
     },
     {
       titulo: "CO2 Evitado",
       valor: m ? `${m.resumo.co2EvitadoKg.toLocaleString("pt-BR")} kg` : "-- kg",
       descricao: m ? `${m.resumo.arvoresEquivalentes} arvores` : "",
-      tendencia: m?.tendencias.peso ?? { valor: 0, tipo: "neutro" as const },
+      tendencia: mapTendencia(m?.tendencias.peso),
     },
     {
       titulo: "Coletas Realizadas",
       valor: m ? String(m.resumo.coletasRealizadas) : "--",
       descricao: m ? `de ${m.resumo.totalColetas} agendadas` : "",
-      tendencia: m?.tendencias.coletas ?? { valor: 0, tipo: "neutro" as const },
+      tendencia: mapTendencia(m?.tendencias.coletas),
     },
     {
       titulo: "MTRs Emitidos",
