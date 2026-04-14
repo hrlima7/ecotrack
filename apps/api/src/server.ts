@@ -22,6 +22,7 @@ import { mtrRoutes } from "./routes/mtr";
 import { empresasRoutes } from "./routes/empresas";
 import { metricasRoutes } from "./routes/metricas";
 import { rastreamentoRoutes } from "./routes/rastreamento";
+import { marketplaceRoutes } from "./routes/marketplace";
 
 const API_PREFIX = "/api/v1";
 
