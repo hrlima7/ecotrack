@@ -276,11 +276,17 @@ describe("MTR Routes", () => {
     it("rejeita assinatura de MTR rascunho", async () => {
       const fixture = await criarEmpresaFixture();
       const { accessToken } = await loginAs(app, fixture.email, fixture.senha);
-      const { mtrId } = await criarColetaComMtr(app, fixture.empresaId, accessToken);
+      const { coletaId } = await criarColetaComMtr(app, fixture.empresaId, accessToken);
+
+      // Buscar o MTR rascunho criado automaticamente pela coleta
+      const mtr = await prisma.manifestoMTR.findFirst({
+        where: { coletaId },
+      });
+      expect(mtr).toBeTruthy();
 
       const res = await app.inject({
         method: "POST",
-        url: `/api/v1/mtr/${mtrId}/assinar`,
+        url: `/api/v1/mtr/${mtr!.id}/assinar`,
         headers: { ...authHeaders(accessToken), "content-type": "application/json" },
         payload: { tipo: "GERADOR", assinatura: "Assinatura" },
       });
