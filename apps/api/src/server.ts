@@ -176,6 +176,7 @@ export async function buildApp() {
   await app.register(empresasRoutes, { prefix: `${API_PREFIX}/empresas` });
   await app.register(metricasRoutes, { prefix: `${API_PREFIX}/metricas` });
   await app.register(rastreamentoRoutes, { prefix: `${API_PREFIX}/rastreamento` });
+  await app.register(marketplaceRoutes, { prefix: `${API_PREFIX}/marketplace` });
 
   return app;
 }
