@@ -102,4 +102,8 @@ export const API_ROUTES = {
     DASHBOARD: `${API_PREFIX}/metricas/dashboard`,
     RELATORIO: `${API_PREFIX}/metricas/relatorio`,
   },
+  RASTREAMENTO: {
+    ATIVAS: `${API_PREFIX}/rastreamento/ativas`,
+    POSICAO: (coletaId: string) => `${API_PREFIX}/rastreamento/${coletaId}/posicao`,
+  },
 } as const;
