@@ -70,7 +70,7 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
             estado: true,
             licencaAmbiental: true,
             licencaVencimento: true,
-            _count: { select: { coletasTransportadas: true } },
+            _count: { select: { coletasColetadas: true } },
           },
           orderBy: { razaoSocial: "asc" },
           skip: (page - 1) * limit,
@@ -96,7 +96,7 @@ export const marketplaceRoutes: FastifyPluginAsync = async (fastify) => {
             estado: e.estado,
             licencaAmbiental: e.licencaAmbiental,
             licencaVencimento: e.licencaVencimento,
-            totalColetas: e._count.coletasTransportadas,
+            totalColetas: e._count.coletasColetadas,
             residuosAceitos: inventario.map((i) => i.residuo.descricao),
           };
         })
