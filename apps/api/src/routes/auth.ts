@@ -360,6 +360,80 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
+  // PATCH /senha — trocar senha do usuário autenticado
+  fastify.patch(
+    "/senha",
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        tags: ["auth"],
+        summary: "Trocar senha do usuário autenticado",
+        security: [{ bearerAuth: [] }],
+        body: {
+          type: "object",
+          required: ["senhaAtual", "novaSenha"],
+          properties: {
+            senhaAtual: { type: "string", minLength: 1 },
+            novaSenha: { type: "string", minLength: 8 },
+          },
+        },
+      },
+    },
+    async (req, reply) => {
+      const { sub: usuarioId, empresaId } = req.user;
+      const { senhaAtual, novaSenha } = req.body as { senhaAtual: string; novaSenha: string };
+
+      const usuario = await fastify.prisma.usuario.findUnique({
+        where: { id: usuarioId },
+        select: { senhaHash: true },
+      });
+
+      if (!usuario) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: "NOT_FOUND", message: "Usuário não encontrado" },
+        });
+      }
+
+      const senhaValida = await bcrypt.compare(senhaAtual, usuario.senhaHash);
+      if (!senhaValida) {
+        return reply.status(401).send({
+          success: false,
+          error: { code: "SENHA_INCORRETA", message: "Senha atual incorreta" },
+        });
+      }
+
+      const novaSenhaHash = await bcrypt.hash(novaSenha, BCRYPT_ROUNDS);
+      await fastify.prisma.usuario.update({
+        where: { id: usuarioId },
+        data: { senhaHash: novaSenhaHash },
+      });
+
+      // Revogar todos os refresh tokens (forçar re-login em outros dispositivos)
+      await fastify.prisma.refreshToken.updateMany({
+        where: { usuarioId, revogado: false },
+        data: { revogado: true },
+      });
+
+      await fastify.prisma.auditLog.create({
+        data: {
+          empresaId,
+          usuarioId,
+          acao: "TROCAR_SENHA",
+          recurso: "usuario",
+          recursoId: usuarioId,
+          ip: req.ip,
+          userAgent: req.headers["user-agent"] ?? null,
+        },
+      });
+
+      return reply.status(200).send({
+        success: true,
+        data: { mensagem: "Senha alterada com sucesso" },
+      });
+    }
+  );
+
   // GET /me — dados do usuário autenticado
   fastify.get(
     "/me",
