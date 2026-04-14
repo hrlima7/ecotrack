@@ -20,6 +20,7 @@ import { coletasRoutes } from "./routes/coletas";
 import { residuosRoutes } from "./routes/residuos";
 import { mtrRoutes } from "./routes/mtr";
 import { empresasRoutes } from "./routes/empresas";
+import { metricasRoutes } from "./routes/metricas";
 
 const API_PREFIX = "/api/v1";
 
