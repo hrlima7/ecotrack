@@ -5,7 +5,7 @@
     "dockerfilePath": "apps/api/Dockerfile"
   },
   "deploy": {
-    "startCommand": "cd apps/api && pnpm prisma migrate deploy && node /app/dist/server.js",
+    "startCommand": "cd apps/api && pnpm prisma migrate deploy && cd /app && node dist/apps/api/src/server.js",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
