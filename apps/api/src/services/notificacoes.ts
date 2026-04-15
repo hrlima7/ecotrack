@@ -5,11 +5,12 @@
 
 import type { FastifyInstance } from "fastify";
 import { STATUS_COLETA_LABELS } from "@ecotrack/shared";
-import type { StatusColeta } from "@ecotrack/shared";
+
+type StatusColetaStr = keyof typeof STATUS_COLETA_LABELS;
 
 interface ColetaParaEmail {
   id: string;
-  status: StatusColeta;
+  status: StatusColetaStr;
   dataAgendada: Date;
   cidade: string;
   estado: string;
