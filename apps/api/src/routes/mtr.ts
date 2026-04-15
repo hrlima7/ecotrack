@@ -175,7 +175,7 @@ export const mtrRoutes: FastifyPluginAsync = async (fastify) => {
           acao: "EMITIR_MTR",
           recurso: "manifestoMTR",
           recursoId: manifesto.id,
-          detalhes: { numeroMtr },
+          detalhes: { numeroMtr, modoSinir: emissao.modo, protocolo: emissao.protocolo },
           ip: req.ip,
           userAgent: req.headers["user-agent"] ?? null,
         },
