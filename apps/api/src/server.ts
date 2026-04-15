@@ -100,6 +100,7 @@ export async function buildApp() {
     await app.register(redisPlugin);
   }
   await app.register(jwtPlugin);
+  await app.register(mailerPlugin);
 
   // ─── Handler de erros global ─────────────────────────────────────────────
   // Registrado ANTES das rotas para que os plugins encapsulados o herdem.
