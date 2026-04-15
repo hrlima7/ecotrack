@@ -41,4 +41,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3001/health || exit 1
 
 # Roda migrations e starta servidor
-CMD ["sh", "-c", "cd apps/api && pnpm prisma migrate deploy && node ../../dist/server.js"]
+CMD ["sh", "-c", "cd apps/api && pnpm prisma migrate deploy && cd /app && node dist/apps/api/src/server.js"]
