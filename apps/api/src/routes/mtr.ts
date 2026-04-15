@@ -13,13 +13,7 @@
 import type { FastifyPluginAsync } from "fastify";
 import { emitirMtrSchema, assinarMtrSchema, filtrosMtrSchema } from "../schemas/mtr.schema";
 import { criarNotificacoes } from "../services/notificacoes";
-
-/** Gera número MTR sequencial local (Fase 1) */
-function gerarNumeroMtr(coletaId: string): string {
-  const ano = new Date().getFullYear();
-  const sufixo = coletaId.slice(-6).toUpperCase();
-  return `MTR-${ano}-${sufixo}`;
-}
+import { criarSinir, tipoParaCodigoIbama } from "../services/sinir";
 
 export const mtrRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.addHook("onRequest", fastify.authenticate);
