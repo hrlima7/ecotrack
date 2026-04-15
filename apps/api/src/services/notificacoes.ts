@@ -6,7 +6,13 @@
 import type { FastifyInstance } from "fastify";
 import { STATUS_COLETA_LABELS } from "@ecotrack/shared";
 
-type StatusColetaStr = keyof typeof STATUS_COLETA_LABELS;
+type StatusColetaStr =
+  | "PENDENTE"
+  | "CONFIRMADA"
+  | "EM_ROTA"
+  | "COLETADO"
+  | "FINALIZADO"
+  | "CANCELADO";
 
 interface ColetaParaEmail {
   id: string;
