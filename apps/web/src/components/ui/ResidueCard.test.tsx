@@ -28,7 +28,13 @@ describe("ResidueCard", () => {
   });
 
   it("renderiza todos os tipos sem erro", () => {
-    const tipos = ["ORGANICO", "RECICLAVEL", "ELETRONICO", "HOSPITALAR", "PERIGOSO"] as const;
+    const tipos: TipoResiduo[] = [
+      TipoResiduo.ORGANICO,
+      TipoResiduo.RECICLAVEL,
+      TipoResiduo.ELETRONICO,
+      TipoResiduo.HOSPITALAR,
+      TipoResiduo.PERIGOSO,
+    ];
     tipos.forEach((t) => {
       const { unmount } = render(<ResidueCard tipo={t} />);
       expect(screen.getByText(RESIDUO_LABELS[t])).toBeInTheDocument();
@@ -39,12 +45,12 @@ describe("ResidueCard", () => {
 
 describe("ResidueTag", () => {
   it("renderiza label do tipo", () => {
-    render(<ResidueTag tipo="PERIGOSO" />);
+    render(<ResidueTag tipo={TipoResiduo.PERIGOSO} />);
     expect(screen.getByText(RESIDUO_LABELS.PERIGOSO)).toBeInTheDocument();
   });
 
   it("aplica aria-label com prefixo Tipo", () => {
-    render(<ResidueTag tipo="ORGANICO" />);
+    render(<ResidueTag tipo={TipoResiduo.ORGANICO} />);
     expect(screen.getByLabelText(`Tipo: ${RESIDUO_LABELS.ORGANICO}`)).toBeInTheDocument();
   });
 });
