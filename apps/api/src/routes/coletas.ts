@@ -17,6 +17,8 @@ import {
   atualizarStatusColetaSchema,
   filtrosColetaSchema,
 } from "../schemas/coleta.schema";
+import { criarNotificacoes } from "../services/notificacoes";
+import type { StatusColeta } from "@ecotrack/shared";
 
 // Transições de status permitidas (máquina de estados)
 const TRANSICOES_PERMITIDAS: Record<string, string[]> = {
