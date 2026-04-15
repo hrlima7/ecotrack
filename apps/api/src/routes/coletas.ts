@@ -352,6 +352,32 @@ export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
         return atualizada;
       });
 
+      // Notificar mudança de status
+      const admin = await fastify.prisma.usuario.findFirst({
+        where: { empresaId, role: "ADMIN" },
+        select: { email: true },
+      });
+      if (admin) {
+        const empresa = await fastify.prisma.empresa.findUnique({
+          where: { id: empresaId },
+          select: { razaoSocial: true },
+        });
+        criarNotificacoes(fastify)
+          .mudancaStatus(
+            admin.email,
+            {
+              id: coletaAtualizada.id,
+              status: coletaAtualizada.status as StatusColeta,
+              dataAgendada: coletaAtualizada.dataAgendada,
+              cidade: coletaAtualizada.cidade,
+              estado: coletaAtualizada.estado,
+              empresa: { razaoSocial: empresa?.razaoSocial ?? "" },
+            },
+            coleta.status as StatusColeta
+          )
+          .catch((err) => fastify.log.error({ err }, "Falha email mudanca-status"));
+      }
+
       return reply.status(200).send({ success: true, data: coletaAtualizada });
     }
   );
