@@ -391,7 +391,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
       const usuario = await fastify.prisma.usuario.findUnique({
         where: { id: usuarioId },
-        select: { senhaHash: true },
+        select: { senhaHash: true, email: true, nome: true },
       });
 
       if (!usuario) {
