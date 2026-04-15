@@ -127,8 +127,21 @@ export const mtrRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      // 4. Gerar número MTR (Fase 1: local; Fase 2: SINIR)
-      const numeroMtr = gerarNumeroMtr(coleta.id);
+      // 4. Emitir MTR via servico SINIR (mock em DEV, real em PROD)
+      const sinir = criarSinir(fastify);
+      const emissao = await sinir.emitir({
+        coletaId: coleta.id,
+        geradorCnpj: coleta.empresa.cnpj,
+        geradorRazaoSocial: coleta.empresa.razaoSocial,
+        residuos: coleta.residuos.map((r) => ({
+          codigoIbama: tipoParaCodigoIbama(r.residuo.tipo),
+          descricao: r.residuo.descricao,
+          quantidadeKg: r.quantidadeEstimada,
+          unidade: r.unidade as "KG" | "LITRO" | "UNIDADE",
+        })),
+        dataPrevista: coleta.dataAgendada,
+      });
+      const numeroMtr = emissao.numero;
 
       // 5. Atualizar ou criar ManifestoMTR
       const manifesto = await fastify.prisma.manifestoMTR.upsert({
@@ -136,13 +149,13 @@ export const mtrRoutes: FastifyPluginAsync = async (fastify) => {
         update: {
           status: "EMITIDO",
           numeroSinir: numeroMtr,
-          emitidoEm: new Date(),
+          emitidoEm: emissao.emitidoEm,
         },
         create: {
           coletaId: input.coletaId,
           status: "EMITIDO",
           numeroSinir: numeroMtr,
-          emitidoEm: new Date(),
+          emitidoEm: emissao.emitidoEm,
         },
         include: {
           coleta: {
