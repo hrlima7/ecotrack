@@ -13,6 +13,7 @@ import swaggerUi from "@fastify/swagger-ui";
 import { prismaPlugin } from "./plugins/prisma";
 import { redisPlugin } from "./plugins/redis";
 import { jwtPlugin } from "./plugins/jwt";
+import { mailerPlugin } from "./plugins/mailer";
 
 import { ZodError } from "zod";
 import { authRoutes } from "./routes/auth";
