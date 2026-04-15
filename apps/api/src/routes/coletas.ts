@@ -18,7 +18,9 @@ import {
   filtrosColetaSchema,
 } from "../schemas/coleta.schema";
 import { criarNotificacoes } from "../services/notificacoes";
-import type { StatusColeta } from "@ecotrack/shared";
+import { STATUS_COLETA_LABELS } from "@ecotrack/shared";
+
+type StatusColetaStr = keyof typeof STATUS_COLETA_LABELS;
 
 // Transições de status permitidas (máquina de estados)
 const TRANSICOES_PERMITIDAS: Record<string, string[]> = {
