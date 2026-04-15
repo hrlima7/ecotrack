@@ -18,9 +18,14 @@ import {
   filtrosColetaSchema,
 } from "../schemas/coleta.schema";
 import { criarNotificacoes } from "../services/notificacoes";
-import { STATUS_COLETA_LABELS } from "@ecotrack/shared";
 
-type StatusColetaStr = keyof typeof STATUS_COLETA_LABELS;
+type StatusColetaStr =
+  | "PENDENTE"
+  | "CONFIRMADA"
+  | "EM_ROTA"
+  | "COLETADO"
+  | "FINALIZADO"
+  | "CANCELADO";
 
 // Transições de status permitidas (máquina de estados)
 const TRANSICOES_PERMITIDAS: Record<string, string[]> = {
@@ -369,13 +374,13 @@ export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
             admin.email,
             {
               id: coletaAtualizada.id,
-              status: coletaAtualizada.status as StatusColeta,
+              status: coletaAtualizada.status as StatusColetaStr,
               dataAgendada: coletaAtualizada.dataAgendada,
               cidade: coletaAtualizada.cidade,
               estado: coletaAtualizada.estado,
               empresa: { razaoSocial: empresa?.razaoSocial ?? "" },
             },
-            coleta.status as StatusColeta
+            coleta.status as StatusColetaStr
           )
           .catch((err) => fastify.log.error({ err }, "Falha email mudanca-status"));
       }
