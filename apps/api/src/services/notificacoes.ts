@@ -77,7 +77,7 @@ export function templateColetaCriada(coleta: ColetaParaEmail, url: string): stri
   );
 }
 
-export function templateMudancaStatus(coleta: ColetaParaEmail, statusAnterior: StatusColeta, url: string): string {
+export function templateMudancaStatus(coleta: ColetaParaEmail, statusAnterior: StatusColetaStr, url: string): string {
   return shell(
     h1(`Status atualizado: ${STATUS_COLETA_LABELS[coleta.status]}`) +
       p(`A coleta em ${coleta.cidade}/${coleta.estado} mudou de <strong>${STATUS_COLETA_LABELS[statusAnterior]}</strong> para <strong>${STATUS_COLETA_LABELS[coleta.status]}</strong>.`) +
