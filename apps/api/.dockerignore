@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.env.*
+*.log
+.DS_Store
+.git
+.gitignore
+coverage
+.vscode
+.idea
+README.md
+*.test.ts
+**/*.test.ts
+vitest.config.ts
+src/test
