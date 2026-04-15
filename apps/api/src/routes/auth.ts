@@ -433,6 +433,10 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
         },
       });
 
+      criarNotificacoes(fastify)
+        .senhaAlterada(usuario.email, usuario.nome)
+        .catch((err) => fastify.log.error({ err }, "Falha ao notificar troca de senha"));
+
       return reply.status(200).send({
         success: true,
         data: { mensagem: "Senha alterada com sucesso" },
