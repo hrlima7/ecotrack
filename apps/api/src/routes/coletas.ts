@@ -212,6 +212,28 @@ export const coletasRoutes: FastifyPluginAsync = async (fastify) => {
         },
       });
 
+      // Notificar admin da empresa por email
+      const admin = await fastify.prisma.usuario.findFirst({
+        where: { empresaId, role: "ADMIN" },
+        select: { email: true },
+      });
+      if (admin) {
+        const empresa = await fastify.prisma.empresa.findUnique({
+          where: { id: empresaId },
+          select: { razaoSocial: true },
+        });
+        criarNotificacoes(fastify)
+          .coletaCriada(admin.email, {
+            id: coleta.id,
+            status: "PENDENTE",
+            dataAgendada: coleta.dataAgendada,
+            cidade: coleta.cidade,
+            estado: coleta.estado,
+            empresa: { razaoSocial: empresa?.razaoSocial ?? "" },
+          })
+          .catch((err) => fastify.log.error({ err }, "Falha email coleta-criada"));
+      }
+
       return reply.status(201).send({ success: true, data: coleta });
     }
   );
