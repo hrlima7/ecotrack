@@ -107,7 +107,7 @@ export function templateSenhaAlterada(nome: string): string {
 interface NotificacaoServico {
   boasVindas: (to: string, nome: string, empresa: string) => Promise<void>;
   coletaCriada: (to: string, coleta: ColetaParaEmail) => Promise<void>;
-  mudancaStatus: (to: string, coleta: ColetaParaEmail, anterior: StatusColeta) => Promise<void>;
+  mudancaStatus: (to: string, coleta: ColetaParaEmail, anterior: StatusColetaStr) => Promise<void>;
   mtrEmitido: (to: string, numero: string, empresa: string, mtrId: string) => Promise<void>;
   senhaAlterada: (to: string, nome: string) => Promise<void>;
 }
