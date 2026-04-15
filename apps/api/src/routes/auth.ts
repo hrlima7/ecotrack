@@ -232,6 +232,11 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
         },
       });
 
+      // 7. Email de boas-vindas (fire-and-forget)
+      criarNotificacoes(fastify)
+        .boasVindas(usuario.email, usuario.nome, empresa.razaoSocial)
+        .catch((err) => fastify.log.error({ err }, "Falha ao enviar boas-vindas"));
+
       const empresaDTO = {
         id: empresa.id,
         razaoSocial: empresa.razaoSocial,
