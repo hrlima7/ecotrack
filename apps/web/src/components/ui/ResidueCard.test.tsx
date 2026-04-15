@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { ResidueCard, ResidueTag } from "./ResidueCard";
-import { RESIDUO_LABELS } from "@ecotrack/shared";
+import { RESIDUO_LABELS, TipoResiduo } from "@ecotrack/shared";
 
 describe("ResidueCard", () => {
   it("usa label padrao do tipo quando label nao informado", () => {
