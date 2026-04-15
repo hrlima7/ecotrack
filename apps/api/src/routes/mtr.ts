@@ -174,6 +174,20 @@ export const mtrRoutes: FastifyPluginAsync = async (fastify) => {
         },
       });
 
+      const admin = await fastify.prisma.usuario.findFirst({
+        where: { empresaId, role: "ADMIN" },
+        select: { email: true },
+      });
+      const empresa = await fastify.prisma.empresa.findUnique({
+        where: { id: empresaId },
+        select: { razaoSocial: true },
+      });
+      if (admin && empresa && manifesto.numeroSinir) {
+        criarNotificacoes(fastify)
+          .mtrEmitido(admin.email, manifesto.numeroSinir, empresa.razaoSocial, manifesto.id)
+          .catch((err) => fastify.log.error({ err }, "Falha email mtr-emitido"));
+      }
+
       return reply.status(201).send({ success: true, data: manifesto });
     }
   );
