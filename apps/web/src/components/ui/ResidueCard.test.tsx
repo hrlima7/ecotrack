@@ -5,23 +5,23 @@ import { RESIDUO_LABELS, TipoResiduo } from "@ecotrack/shared";
 
 describe("ResidueCard", () => {
   it("usa label padrao do tipo quando label nao informado", () => {
-    render(<ResidueCard tipo="ORGANICO" />);
+    render(<ResidueCard tipo={TipoResiduo.ORGANICO} />);
     expect(screen.getByText(RESIDUO_LABELS.ORGANICO)).toBeInTheDocument();
   });
 
   it("sobrescreve label quando informado", () => {
-    render(<ResidueCard tipo="RECICLAVEL" label="Custom Label" />);
+    render(<ResidueCard tipo={TipoResiduo.RECICLAVEL} label="Custom Label" />);
     expect(screen.getByText("Custom Label")).toBeInTheDocument();
     expect(screen.queryByText(RESIDUO_LABELS.RECICLAVEL)).not.toBeInTheDocument();
   });
 
   it("renderiza descricao quando fornecida", () => {
-    render(<ResidueCard tipo="ELETRONICO" descricao="Pilhas e baterias" />);
+    render(<ResidueCard tipo={TipoResiduo.ELETRONICO} descricao="Pilhas e baterias" />);
     expect(screen.getByText("Pilhas e baterias")).toBeInTheDocument();
   });
 
   it("aplica aria-label com tipo de residuo", () => {
-    render(<ResidueCard tipo="HOSPITALAR" />);
+    render(<ResidueCard tipo={TipoResiduo.HOSPITALAR} />);
     expect(
       screen.getByLabelText(`Tipo de residuo: ${RESIDUO_LABELS.HOSPITALAR}`)
     ).toBeInTheDocument();
