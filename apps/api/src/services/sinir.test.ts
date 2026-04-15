@@ -40,7 +40,7 @@ describe("criarSinir (mock)", () => {
     });
 
     const ano = new Date().getFullYear();
-    expect(r.numero).toBe(`MTR-${ano}-789GHI`.replace("789GHI", "GHI789"));
+    expect(r.numero).toBe(`MTR-${ano}-GHI789`);
     expect(r.modo).toBe("mock");
     expect(r.protocolo).toBeNull();
     expect(r.emitidoEm).toBeInstanceOf(Date);
