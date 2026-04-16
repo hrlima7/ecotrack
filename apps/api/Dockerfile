@@ -31,14 +31,14 @@ COPY --from=build /repo/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /repo/apps/api/package.json ./apps/api/package.json
 COPY --from=build /repo/apps/api/prisma ./apps/api/prisma
 COPY --from=build /repo/packages ./packages
+COPY apps/api/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 ENV NODE_ENV=production
 ENV PORT=3001
 EXPOSE 3001
 
-# Healthcheck consome /health
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3001/health || exit 1
 
-# Roda migrations e starta servidor
-CMD ["sh", "-c", "cd apps/api && pnpm prisma migrate deploy && cd /app && node dist/apps/api/src/server.js"]
+ENTRYPOINT ["/app/entrypoint.sh"]
