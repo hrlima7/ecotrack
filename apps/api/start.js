@@ -1,11 +1,15 @@
 const { execSync } = require("child_process");
 const path = require("path");
 
-const schema = path.join(__dirname, "apps", "api", "prisma", "schema.prisma");
+const prisma = path.join(__dirname, "node_modules", ".bin", "prisma");
+const schema = path.join(__dirname, "prisma", "schema.prisma");
 
 console.log("[EcoTrack] Running migrations...");
 try {
-  execSync(`npx prisma migrate deploy --schema ${schema}`, { stdio: "inherit" });
+  execSync(`${prisma} migrate deploy --schema ${schema}`, {
+    stdio: "inherit",
+    env: { ...process.env, PATH: process.env.PATH },
+  });
   console.log("[EcoTrack] Migrations OK");
 } catch (e) {
   console.error("[EcoTrack] Migration failed:", e.message);
