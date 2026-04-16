@@ -30,8 +30,7 @@ COPY --from=build /repo/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /repo/apps/api/package.json ./apps/api/package.json
 COPY --from=build /repo/apps/api/prisma ./apps/api/prisma
 COPY --from=build /repo/packages ./packages
-COPY apps/api/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+COPY apps/api/start.js ./start.js
 
 ENV NODE_ENV=production
 ENV PORT=3001
@@ -40,4 +39,4 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3001/health || exit 1
 
-ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
+CMD ["node", "start.js"]
