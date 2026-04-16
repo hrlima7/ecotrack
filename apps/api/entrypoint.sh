@@ -1,8 +1,6 @@
 #!/bin/sh
 set -e
 
-cd /app/apps/api
-pnpm prisma migrate deploy
+npx prisma migrate deploy --schema /app/apps/api/prisma/schema.prisma
 
-cd /app
-node dist/apps/api/src/server.js
+exec node /app/dist/apps/api/src/server.js
