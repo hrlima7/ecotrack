@@ -1,42 +1,26 @@
-# EcoTrack API — Dockerfile multi-stage para Railway/Fly/Render
+# EcoTrack API — Dockerfile para Railway
 
-FROM node:20-alpine AS base
+FROM node:20-alpine
 RUN corepack enable && corepack prepare pnpm@9 --activate
-WORKDIR /repo
+WORKDIR /app
 
-# ─── Stage 1: install + build ──────────────────────────────────────────────
-FROM base AS build
-
+# Copiar todo o repo (Railway monta o contexto na raiz)
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
-COPY apps/api/package.json apps/api/
-COPY packages/shared/package.json packages/shared/
-
-# --shamefully-hoist: flatten node_modules para compatibilidade com Docker COPY
-RUN pnpm install --frozen-lockfile --shamefully-hoist
-
 COPY packages packages
 COPY apps/api apps/api
 
-WORKDIR /repo/apps/api
-RUN pnpm db:generate
-WORKDIR /repo
-RUN pnpm --filter @ecotrack/api build
+# Instalar deps com hoist para evitar symlinks
+RUN pnpm install --frozen-lockfile --shamefully-hoist
 
-# ─── Stage 2: runtime ──────────────────────────────────────────────────────
-FROM node:20-alpine AS runtime
+# Gerar Prisma client e buildar TypeScript
+WORKDIR /app/apps/api
+RUN pnpm db:generate
+RUN pnpm build
+
+# Voltar para raiz
 WORKDIR /app
 
-# node_modules hoisted (sem symlinks)
-COPY --from=build /repo/node_modules ./node_modules
-# Prisma client gerado
-COPY --from=build /repo/node_modules/.prisma ./node_modules/.prisma
-# JS compilado
-COPY --from=build /repo/apps/api/dist ./dist
-# Schema Prisma (para migrations)
-COPY --from=build /repo/apps/api/prisma ./prisma
-# Shared package compilado
-COPY --from=build /repo/packages ./packages
-# Start script
+# Copiar start script
 COPY apps/api/start.js ./start.js
 
 ENV NODE_ENV=production
