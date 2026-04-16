@@ -4,34 +4,39 @@ FROM node:20-alpine AS base
 RUN corepack enable && corepack prepare pnpm@9 --activate
 WORKDIR /repo
 
-# ─── Stage 1: install dependencias ─────────────────────────────────────────
-FROM base AS deps
+# ─── Stage 1: install + build ──────────────────────────────────────────────
+FROM base AS build
+
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
 COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
-RUN pnpm install --frozen-lockfile
 
-# ─── Stage 2: build ────────────────────────────────────────────────────────
-FROM deps AS build
+# --shamefully-hoist: flatten node_modules para compatibilidade com Docker COPY
+RUN pnpm install --frozen-lockfile --shamefully-hoist
+
 COPY packages packages
 COPY apps/api apps/api
+
 WORKDIR /repo/apps/api
 RUN pnpm db:generate
 WORKDIR /repo
 RUN pnpm --filter @ecotrack/api build
 
-# ─── Stage 3: runtime ──────────────────────────────────────────────────────
+# ─── Stage 2: runtime ──────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
 WORKDIR /app
 
-COPY --from=deps /repo/node_modules ./node_modules
+# node_modules hoisted (sem symlinks)
+COPY --from=build /repo/node_modules ./node_modules
+# Prisma client gerado
+COPY --from=build /repo/node_modules/.prisma ./node_modules/.prisma
+# JS compilado
 COPY --from=build /repo/apps/api/dist ./dist
-COPY --from=build /repo/apps/api/node_modules/.prisma ./node_modules/.prisma
-COPY --from=build /repo/apps/api/node_modules/@prisma ./node_modules/@prisma
-COPY --from=build /repo/apps/api/node_modules ./apps/api/node_modules
-COPY --from=build /repo/apps/api/package.json ./apps/api/package.json
-COPY --from=build /repo/apps/api/prisma ./apps/api/prisma
+# Schema Prisma (para migrations)
+COPY --from=build /repo/apps/api/prisma ./prisma
+# Shared package compilado
 COPY --from=build /repo/packages ./packages
+# Start script
 COPY apps/api/start.js ./start.js
 
 ENV NODE_ENV=production
