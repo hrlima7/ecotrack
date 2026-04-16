@@ -94,10 +94,14 @@ export async function buildApp() {
 
   // ─── Plugins de Infraestrutura ──────────────────────────────────────────
   await app.register(prismaPlugin);
-  // Redis não é necessário nos testes de integração (auth/coletas).
-  // Em produção/dev é obrigatório para filas e rate limit distribuído.
-  if (!process.env.VITEST) {
-    await app.register(redisPlugin);
+  // Redis: opcional — necessário para BullMQ e rate limit distribuído.
+  // Se REDIS_URL não estiver configurada, o servidor sobe sem Redis.
+  if (!process.env.VITEST && process.env.REDIS_URL) {
+    try {
+      await app.register(redisPlugin);
+    } catch (err) {
+      app.log.warn({ err }, "Redis indisponivel — servidor sobe sem filas/cache distribuido");
+    }
   }
   await app.register(jwtPlugin);
   await app.register(mailerPlugin);
